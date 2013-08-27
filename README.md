@@ -1,7 +1,12 @@
-JAVA IMPLEMENTATION FOR THE PLISTA CHALLENGE
---------------------------------------------
+Open Recommendation Platform - Java SDK
+=======================================
+The Open Recommendation Platform (ORP) is a distributed platform of entities capable of delivering recommendations for various purposes. It consists of recommendation providers and recommendation consumers that interact and communicate over a standardized protocol. This document describes the protocol and outlines the necessary steps a partner needs to take in order to integrate a technology as recommendation provider. The overall aim of the ORP is to obtain a better recommendation quality. In the context of advertising, better recommendations are defined by a higher CPM (cost per impression). In the context of on-site recommendations, better recommendations are defined by a higher CTR (click-through-rate).
 
 This is a short description of the *Java* implementation for the *News Recommender Systems* challenge hosted by *plista*. We outline the essential components. Additionally, we emphasise on how to incorporate your own recommender.
+
+Technical Restrictions
+----------------------
+Please ensure your system is able to reply within 100ms, as response time is critical for our application. Please further ensure that your system can handle the amount of incoming data. Expect up to several thousand requests per second. When we detect a performance problem, we may automatically decrease the amount of requests forwarded to your system.
 
 OVERVIEW CLASSES
 ----------------
