@@ -128,10 +128,7 @@ public class ChallengeHandler
         // write all data from the server to a file
         logger.info(messageType + "\t" + _jsonMessageBody);
 
-        // create an jSON object from the String 
-        final JSONObject jObj = (JSONObject) JSONValue.parse(_jsonMessageBody);
-
-        // define a response object 
+        // define a response object
         String response = null;
 
         // TODO handle "item_create"
@@ -205,7 +202,7 @@ public class ChallengeHandler
         } else {
             System.out.println("unknown MessageType: " + messageType);
             // Error handling
-            logger.info(jObj.toString());
+            logger.info(_jsonMessageBody);
         }
         return response;
     }

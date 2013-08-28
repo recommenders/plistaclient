@@ -46,6 +46,13 @@ public interface Message {
     public String getText();
 
     /**
+     * Getter for title (convenience).
+     *
+     * @return the title
+     */
+    public String getTitle();
+
+    /**
      * Getter for notification type.
      * @return the notificationType
      */
@@ -63,6 +70,13 @@ public interface Message {
      * @return is the item recommendable
      */
     public Boolean getRecommendable();
+
+    /**
+     * Check whether recommend or not
+     * @return recommendation or not
+     */
+    public Boolean doRecommend();
+
 
     /**
      * Parse the  json Messages.

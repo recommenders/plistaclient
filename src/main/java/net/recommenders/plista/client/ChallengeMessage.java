@@ -60,7 +60,9 @@ public class ChallengeMessage implements Message {
 	public static final Integer NOTIFICATION_TYPE_ID = 12;
 	public static final Integer NUMBER_DISPLAYED_AS_REC_ID = 13;
 	public static final Integer LIST_OF_DISPLAYED_RECS_ID = 14;
-	// /////////////////////////////////////////////////////////////////////////////////////////
+    public static final Integer ITEM_TITLE_ID = 15;
+
+    // /////////////////////////////////////////////////////////////////////////////////////////
 
 	/** the JSON content, might be null */
 	private String json = null;
@@ -158,7 +160,12 @@ public class ChallengeMessage implements Message {
 		return (String) valuesByID.get(ITEM_TEXT_ID);
 	}
 
-	/**
+    @Override
+    public String getTitle() {
+        return (String) valuesByID.get(ITEM_TITLE_ID);
+    }
+
+    /**
 	 * Setter for text. (convenience)
 	 * 
 	 * @param text
@@ -168,7 +175,18 @@ public class ChallengeMessage implements Message {
 		valuesByID.put(ITEM_TEXT_ID, text);
 	}
 
-	/**
+    /**
+     * Setter for title. (convenience)
+     *
+     * @param title
+     *            the title.
+     */
+    public void setTitle(final String title) {
+        valuesByID.put(ITEM_TITLE_ID, title);
+    }
+
+
+    /**
 	 * Getter for notification type.
 	 * @return the notificationType
 	 */
@@ -467,4 +485,9 @@ public class ChallengeMessage implements Message {
 			return null;
 		}	
 	}
+
+    @Override
+    public Boolean doRecommend() {
+        return true;
+    }
 }
