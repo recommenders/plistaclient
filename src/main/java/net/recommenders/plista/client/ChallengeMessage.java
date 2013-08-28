@@ -17,7 +17,11 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
 
-package de.dailab.plistacontest.client;
+package net.recommenders.plista.client;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,18 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-
 /**
  * An impression object. Should contain userID, itemID, domainID, and timeStamp.
  * Additional values or jSON might also be available.
  * 
- * @author andreas
+ * @author andreas, alan, alejandro
  * 
  */
-public class RecommenderItem {
+public class ChallengeMessage implements Message {
 
 	/** The threadLocal simpleDateFormat */
 	public static final ThreadLocal<SimpleDateFormat> sdf = new ThreadLocal<SimpleDateFormat>() {
@@ -73,7 +73,7 @@ public class RecommenderItem {
 	/**
 	 * Default constructor.
 	 */
-	private RecommenderItem() {
+	public ChallengeMessage() {
 		super();
 	}
 
@@ -85,8 +85,8 @@ public class RecommenderItem {
 	 * @param domainID
 	 * @param timeStamp
 	 */
-	public RecommenderItem(final Long userID, final Long itemID,
-			final Long domainID, final Long timeStamp) {
+	public ChallengeMessage(final Long userID, final Long itemID,
+                            final Long domainID, final Long timeStamp) {
 		this();
 		this.valuesByID.put(USER_ID, userID);
 		this.valuesByID.put(ITEM_ID, itemID);
@@ -178,7 +178,7 @@ public class RecommenderItem {
 	
 	/**
 	 * Setter for notification type.
-	 * @param notificationType the notificationType to be set
+	 * @param _notificationType the notificationType to be set
 	 */
 	public void setNotificationType(final String _notificationType) {
 		valuesByID.put(NOTIFICATION_TYPE_ID, _notificationType);
@@ -278,7 +278,7 @@ public class RecommenderItem {
 	
 	/**
 	 * Setter for listOfDisplayedRecs
-	 * @param _numberDisplayedAsRec the list of displayed recommendations
+	 * @param _listOfDisplayedRecs the list of displayed recommendations
 	 */
 	public void setListOfDisplayedRecs(final List<Long> _listOfDisplayedRecs) {
 		this.valuesByID.put(LIST_OF_DISPLAYED_RECS_ID, _listOfDisplayedRecs);
@@ -309,7 +309,7 @@ public class RecommenderItem {
 	 * @param _jsonMessageBody
 	 * @return the parsed values encapsulated in a map; null if an error has been detected.
 	 */
-	public static RecommenderItem parseItemUpdate(String _jsonMessageBody) {
+	public Message parseItemUpdate(String _jsonMessageBody) {
 		try {
 			final JSONObject jsonObj = (JSONObject) JSONValue
 					.parse(_jsonMessageBody);
@@ -325,12 +325,12 @@ public class RecommenderItem {
 			Long created = System.currentTimeMillis();
 			try {
 				SimpleDateFormat sdf;
-				sdf = RecommenderItem.sdf.get();
+				sdf = ChallengeMessage.sdf.get();
 				created = sdf.parse(createdAt).getTime();
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-			RecommenderItem result = new RecommenderItem(null /*userID*/, Long.valueOf(itemID),  Long.valueOf(domainID), created);
+			ChallengeMessage result = new ChallengeMessage(null /*userID*/, Long.valueOf(itemID),  Long.valueOf(domainID), created);
 			result.setText(text);
 			result.setRecommendable(recommendable);
 
@@ -345,7 +345,7 @@ public class RecommenderItem {
 	 * @param _jsonMessageBody
 	 * @return the parsed values encapsulated in a map; null if an error has been detected.
 	 */
-	 public static RecommenderItem parseRecommendationRequest(String _jsonMessageBody) {
+	 public Message parseRecommendationRequest(String _jsonMessageBody) {
 		
 		try {
 			final JSONObject jsonObj = (JSONObject) JSONValue.parse(_jsonMessageBody);
@@ -380,7 +380,7 @@ public class RecommenderItem {
 			} catch (Exception e) {
 				System.out.println("[Exception] no limit found in " + _jsonMessageBody);
 			}
-			RecommenderItem result = new RecommenderItem(userID, itemID, domainID, timeStamp);
+			ChallengeMessage result = new ChallengeMessage(userID, itemID, domainID, timeStamp);
 			result.setNumberOfRequestedResults(limit.intValue());
 			
 			return result;
@@ -395,12 +395,12 @@ public class RecommenderItem {
 	 * @param _jsonMessageBody
 	 * @return
 	 */
-	public static RecommenderItem parseEventNotification(final String _jsonMessageBody) {
+	public Message parseEventNotification(final String _jsonMessageBody) {
 
 		try {
 			final JSONObject jsonObj = (JSONObject) JSONValue.parse(_jsonMessageBody);
 			
-			// parse JSON strubure to obtain "context.simple"
+			// parse JSON structure to obtain "context.simple"
 			JSONObject jsonObjectContext = (JSONObject) jsonObj.get("context");
 			JSONObject jsonObjectContextSimple = (JSONObject) jsonObjectContext.get("simple");
 			
@@ -454,7 +454,7 @@ public class RecommenderItem {
 			}
 			
 			// create the result and return
-			RecommenderItem result = new RecommenderItem(userID, itemID, domainID, System.currentTimeMillis());
+			ChallengeMessage result = new ChallengeMessage(userID, itemID, domainID, System.currentTimeMillis());
 			result.setNotificationType(notificationType);
 			result.setListOfDisplayedRecs(listOfDisplayedRecs);
 			

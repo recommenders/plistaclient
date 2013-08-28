@@ -17,13 +17,9 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
 
-package de.dailab.plistacontest.client;
+package net.recommenders.plista.recommender;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A HashMap providing a ring buffer for each key. This implementation shall illustrate a simple baseline recommender. 
@@ -31,12 +27,12 @@ import java.util.Set;
  * the list reaches its pre-defined size, the least recent items are dropped. Thus, the recommender considers recency 
  * as most important factor.
  * 
- * @author andreas
+ * @author andreas, alan, alejandro
  *
  * @param <K> the type of the key
  * @param <V> the type of the values in the ring buffer
  */
-public class DirtyRingBuffer<K, V> {
+public class RecentRingBuffer<K, V> {
 
 	/**
 	 * store a list of values for each key.
@@ -58,7 +54,7 @@ public class DirtyRingBuffer<K, V> {
 	 * 
 	 * @param maximalNumberOfItemsPerKey
 	 **/
-	public DirtyRingBuffer(final int maximalNumberOfItemsPerKey) {
+	public RecentRingBuffer(final int maximalNumberOfItemsPerKey) {
 		super();
 		this.maximalNumberOfItemsPerKey = maximalNumberOfItemsPerKey;
 	}
@@ -151,7 +147,7 @@ public class DirtyRingBuffer<K, V> {
 	/**
 	 * Get a nice string representation for debugging
 	 * 
-	 * @see java.lang.Object#toString()
+	 * @see Object#toString()
 	 */
 	@Override
 	public String toString() {
@@ -172,7 +168,7 @@ public class DirtyRingBuffer<K, V> {
 	public static void main(String[] args) throws InterruptedException {
 
 		System.out.println("Hallo");
-		DirtyRingBuffer<String,Integer> myMap = new DirtyRingBuffer<String,Integer>(3);
+		RecentRingBuffer<String,Integer> myMap = new RecentRingBuffer<String,Integer>(3);
 		myMap.addValueByKey("User0", 1);
 		System.out.println(myMap);
 		myMap.addValueByKey("User0", 2);

@@ -17,28 +17,26 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
 
-package de.dailab.plistacontest.client;
+package net.recommenders.plista.recommender;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import net.recommenders.plista.client.Message;
 
-import org.apache.lucene.document.SetBasedFieldSelector;
+import java.util.*;
+
 /*
 * Class to represent the table of items available to be recommended
  */
-public class RecommenderItemTable {
+public class RecentRecommender implements Recommender {
 
 
-	private DirtyRingBuffer<String, Long> table = new DirtyRingBuffer<String, Long>(100);
+	private RecentRingBuffer<String, Long> table = new RecentRingBuffer<String, Long>(100);
 
 	/**
 	 * Handle the item update, itemID is ignored
 	 * @param _item
 	 * @return
 	 */
-	public boolean handleItemUpdate(final RecommenderItem _item) {
+	public boolean handleItemUpdate(final Message _item) {
 		
 		// check the item
 		if (_item == null || _item.getItemID() == null || _item.getItemID() == 0L || _item.getDomainID() == null) {
@@ -55,7 +53,8 @@ public class RecommenderItemTable {
 	 * @param _currentRequest
 	 * @return
 	 */
-	public List<Long> getLastItems(final RecommenderItem _currentRequest) {
+    @Override
+	public List<Long> recommend(final Message _currentRequest) {
 
 		Integer numberOfRequestedResults = _currentRequest.getNumberOfRequestedResults();
 		Long itemID = _currentRequest.getItemID();
@@ -76,4 +75,26 @@ public class RecommenderItemTable {
 		returnResult.addAll(result);
 		return returnResult;
 	}
+
+    @Override
+    public void init() {
+    }
+
+    @Override
+    public void impression(Message _impression) {
+        update(_impression);
+    }
+
+    @Override
+    public void click(Message _click) {
+    }
+
+    @Override
+    public void update(Message _update) {
+        handleItemUpdate(_update);
+    }
+
+    @Override
+    public void setProperties(Properties properties) {
+    }
 }

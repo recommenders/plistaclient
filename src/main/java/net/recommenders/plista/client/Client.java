@@ -17,18 +17,18 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
 
-package de.dailab.plistacontest.client;
+package net.recommenders.plista.client;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import net.recommenders.plista.recommender.Recommender;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.dailab.plistacontest.client.ContestHandler;
 
 
 /**
@@ -37,8 +37,8 @@ import de.dailab.plistacontest.client.ContestHandler;
  *      - initializing and starting the http server
  *      - configuring the http server
  * Note: Configuration details may be provided as a properties file (args[0])
- * 
- * @author andreas
+ *
+ * @author andreas, alan, alejandro
  *
  */
 public class Client {
@@ -61,16 +61,23 @@ public class Client {
      * @throws Exception
      */
     public static void main(String[] args)
-                    throws Exception {
+            throws Exception {
 
-    	// store some configurations
         final Properties properties = new Properties();
+        String fileName = "";
+        String recommenderClass = null;
+        String handlerClass = null;
 
+        if(args.length < 3)
+            fileName = System.getProperty("propertyFile");
+        else{
+            fileName = args[0];
+            recommenderClass = args[1];
+            handlerClass = args[2];
+        }
         // load the team properties
         try {
-        	if (args.length > 0) {
-        		properties.load(new FileInputStream(args[0]));
-        	}
+            properties.load(new FileInputStream(fileName));
         }
         catch (IOException e) {
             logger.error(e.getMessage());
@@ -78,36 +85,40 @@ public class Client {
         catch (Exception e) {
             logger.error(e.getMessage());
         }
-
-        // you might want to use a recommender
-        Object recommender = null;
-
+        Recommender recommender = null;
+        recommenderClass = (recommenderClass != null ? recommenderClass : properties.getProperty("plista.recommender"));
         try {
-        	// initialize the recommender dynamically
-        	/*
-            final Class<?> transformClass = Class.forName(args[1]);
-            recommender = (Object) transformClass.newInstance();
-            */
+            final Class<?> transformClass = Class.forName(recommenderClass);
+            recommender = (Recommender) transformClass.newInstance();
         }
         catch (Exception e) {
             logger.error(e.getMessage());
-            throw new IllegalArgumentException("No recommender specified or recommender not avialable.");
+            throw new IllegalArgumentException("No recommender specified or recommender not available.");
         }
-
         // configure log4j
-        if (args.length >= 3 && args[2] != null) {
+        if (args.length >= 4 && args[3] != null) {
             PropertyConfigurator.configure(args[0]);
         }
         else {
             PropertyConfigurator.configure("log4j.properties");
         }
-
         // set up and start server
+
+        AbstractHandler handler = null;
+        handlerClass = (handlerClass != null ? handlerClass : properties.getProperty("plista.handler"));
+        try {
+            final Class<?> transformClass = Class.forName(handlerClass);
+            handler = (AbstractHandler) transformClass.getConstructor(Properties.class, Recommender.class).newInstance(properties, recommender);
+        }
+        catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new IllegalArgumentException("No handler specified or handler not available.");
+        }
         final Server server = new Server(Integer.parseInt(properties.getProperty("plista.port", "8080")));
-        server.setHandler(new ContestHandler(properties, recommender));
+
+        server.setHandler(handler);
         logger.debug("Serverport " + server.getConnectors()[0].getPort());
-        
-        // start
+
         server.start();
         server.join();
     }

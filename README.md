@@ -11,7 +11,6 @@ Please ensure your system is able to reply within 100ms, as response time is cri
 OVERVIEW CLASSES
 ----------------
 
-+ Client.java
 + ContestHandler.java
 + RecommendedItem.java
 + RecommenderItemTable.java
