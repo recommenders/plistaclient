@@ -1,14 +1,10 @@
 package net.recommenders.plista.client;
 
 /**
- * Created with IntelliJ IDEA.
- * User: alan
- * Date: 2013-08-28
- * Time: 14:59
- * To change this template use File | Settings | File Templates.
+ * Created with IntelliJ IDEA. User: alan Date: 2013-08-28 Time: 14:59 To change
+ * this template use File | Settings | File Templates.
  */
 public interface Message {
-
 
     /**
      * Getter for userID. (convenience)
@@ -43,17 +39,39 @@ public interface Message {
      *
      * @return the text
      */
-    public String getText();
+    public String getItemText();
 
     /**
      * Getter for title (convenience).
      *
      * @return the title
      */
-    public String getTitle();
+    public String getItemTitle();
+
+    /**
+     * Getter for URL.
+     *
+     * @return the URL
+     */
+    public String getItemURL();
+
+    /**
+     * Getter for creation time
+     *
+     * @return the creation time
+     */
+    public Long getItemCreated();
+
+    /**
+     * Getter for recommendable
+     *
+     * @return is the item recommendable
+     */
+    public Boolean getItemRecommendable();
 
     /**
      * Getter for notification type.
+     *
      * @return the notificationType
      */
     public String getNotificationType();
@@ -66,40 +84,35 @@ public interface Message {
     public Integer getNumberOfRequestedResults();
 
     /**
-     * Getter for recommendable
-     * @return is the item recommendable
-     */
-    public Boolean getRecommendable();
-
-    /**
      * Check whether recommend or not
+     *
      * @return recommendation or not
      */
     public Boolean doRecommend();
 
-
     /**
-     * Parse the  json Messages.
+     * Parse the json Messages.
+     *
      * @param _jsonMessageBody
-     * @return the parsed values encapsulated in a map; null if an error has been detected.
+     * @return the parsed values encapsulated in a map; null if an error has
+     * been detected.
      */
     public Message parseItemUpdate(String _jsonMessageBody);
 
     /**
-     * Parse the  json Messages.
+     * Parse the json Messages.
+     *
      * @param _jsonMessageBody
-     * @return the parsed values encapsulated in a map; null if an error has been detected.
+     * @return the parsed values encapsulated in a map; null if an error has
+     * been detected.
      */
     public Message parseRecommendationRequest(String _jsonMessageBody);
 
     /**
      * parse the event notification.
+     *
      * @param _jsonMessageBody
      * @return
      */
     public Message parseEventNotification(final String _jsonMessageBody);
-
-
-
-    }
-
+}

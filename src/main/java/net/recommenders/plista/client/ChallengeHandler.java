@@ -1,21 +1,21 @@
 /*
-Copyright (c) 2013, TU Berlin
-Permission is hereby granted, free of charge, to any person obtaining 
-a copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
-DEALINGS IN THE SOFTWARE.
-*/
+ Copyright (c) 2013, TU Berlin
+ Permission is hereby granted, free of charge, to any person obtaining 
+ a copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ DEALINGS IN THE SOFTWARE.
+ */
 package net.recommenders.plista.client;
 
 import java.io.IOException;
@@ -30,17 +30,13 @@ import javax.servlet.http.HttpServletResponse;
 import net.recommenders.plista.recommender.Recommender;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class to handle the communication with the plista challenge server
- * Functions:
- *       - parsing incoming HTTP-Requests
- *       - delegating requests according to their types
- *       - responding to the plista challenge server
+ * Class to handle the communication with the plista challenge server Functions:
+ * - parsing incoming HTTP-Requests - delegating requests according to their
+ * types - responding to the plista challenge server
  *
  * @author till, andreas, alan, alejandro
  *
@@ -52,16 +48,15 @@ public class ChallengeHandler
      * Define the default logger
      */
     private final static Logger logger = LoggerFactory.getLogger(ChallengeHandler.class);
-
     /**
      * Define the default recommender, currently not used.
      */
     private Recommender recommender;
     private Message message;
 
-
     /**
      * Constructor, sets some default values.
+     *
      * @param _properties
      * @param _recommender
      */
@@ -73,11 +68,12 @@ public class ChallengeHandler
     }
 
     /**
-     * Handle incoming messages. This method is called by plista
-     * We check the message, and extract the relevant parameter values
+     * Handle incoming messages. This method is called by plista We check the
+     * message, and extract the relevant parameter values
      *
-     * @see org.eclipse.jetty.server.Handler#handle(java.lang.String, org.eclipse.jetty.server.Request,
-     * javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+     * @see org.eclipse.jetty.server.Handler#handle(java.lang.String,
+     * org.eclipse.jetty.server.Request, javax.servlet.http.HttpServletRequest,
+     * javax.servlet.http.HttpServletResponse)
      */
     public void handle(String arg0, Request _breq, HttpServletRequest _request, HttpServletResponse _response)
             throws IOException, ServletException {
@@ -87,10 +83,9 @@ public class ChallengeHandler
 
             if (_breq.getContentLength() < 0) {
                 // handles first message from the server - returns OK
-                System.out.println("[INFO] Initial Message with no content received." );
+                System.out.println("[INFO] Initial Message with no content received.");
                 response(_response, _breq, null, false);
-            }
-            else {
+            } else {
 
                 // handle the normal messages
                 String typeMessage = _breq.getParameter("type");
@@ -108,8 +103,7 @@ public class ChallengeHandler
                 responseText = handleMessage(typeMessage, bodyMessage);
                 response(_response, _breq, responseText, true);
             }
-        }
-        else {
+        } else {
             // GET requests are answered by a HTML page
             logger.debug("Get request from " + _breq.getRemoteAddr());
             response(_response, _breq, "Visit <h3><a href=\"http://www.recommenders.net\">recommenders.net</a></h3>", true);
@@ -119,8 +113,8 @@ public class ChallengeHandler
     /**
      * Method to handle incoming messages from the server.
      *
-     * @param messageType  the messageType of the incoming contest server message
-     * @param _jsonMessageBody  the incoming contest server message
+     * @param messageType the messageType of the incoming contest server message
+     * @param _jsonMessageBody the incoming contest server message
      * @return the response to the contest server
      */
     private String handleMessage(final String messageType, final String _jsonMessageBody) {
@@ -134,7 +128,7 @@ public class ChallengeHandler
         // TODO handle "item_create"
 
         // in a complex if/switch statement we handle the differentTypes of messages
-        if ("item_update".equalsIgnoreCase(messageType)) {
+        if (ChallengeMessage.MSG_UPDATE.equalsIgnoreCase(messageType)) {
 
             // we extract itemID, domainID, text and the time, create/update
             final Message recommenderItem = message.parseItemUpdate(_jsonMessageBody);
@@ -145,9 +139,7 @@ public class ChallengeHandler
             }
 
             response = ";item_update successfull";
-        }
-
-        else if ("recommendation_request".equalsIgnoreCase(messageType)) {
+        } else if (ChallengeMessage.MSG_REC_REQUEST.equalsIgnoreCase(messageType)) {
 
             // we handle a recommendation request
             try {
@@ -168,15 +160,14 @@ public class ChallengeHandler
             } catch (Throwable t) {
                 t.printStackTrace();
             }
-        }
-        else if ("event_notification".equalsIgnoreCase(messageType)) {
+        } else if (ChallengeMessage.MSG_EVENT_NOTIFICATION.equalsIgnoreCase(messageType)) {
 
             // parse the type of the event
             final Message item = message.parseEventNotification(_jsonMessageBody);
             final String eventNotificationType = item.getNotificationType();
 
             // impression refers to articles read by the user
-            if ("impression".equalsIgnoreCase(eventNotificationType)) {
+            if (ChallengeMessage.MSG_NOTIFICATION_IMPRESSION.equalsIgnoreCase(eventNotificationType)) {
 
                 if (item.getItemID() != null) {
                     recommender.impression(item);
@@ -184,7 +175,7 @@ public class ChallengeHandler
                     response = "handle impression eventNotification successful";
                 }
                 // click refers to recommendations clicked by the user
-            } else if ("click".equalsIgnoreCase(eventNotificationType)) {
+            } else if (ChallengeMessage.MSG_NOTIFICATION_CLICK.equalsIgnoreCase(eventNotificationType)) {
                 if (item.getItemID() != null) {
                     recommender.click(item);
 
@@ -195,7 +186,7 @@ public class ChallengeHandler
                 System.out.println("unknown event-type: " + eventNotificationType + " (message ignored)");
             }
 
-        } else if ("error_notification".equalsIgnoreCase(messageType)) {
+        } else if (ChallengeMessage.MSG_ERROR_NOTIFICATION.equalsIgnoreCase(messageType)) {
 
             System.out.println("error-notification: " + _jsonMessageBody);
 
@@ -207,19 +198,13 @@ public class ChallengeHandler
         return response;
     }
 
-
-
     /**
      * Response handler.
      *
-     * @param _response
-     *            {@link HttpServletResponse} object
-     * @param _breq
-     *            the initial request
-     * @param _text
-     *            response text
-     * @param _b
-     *            boolean to set whether the response text should be sent
+     * @param _response {@link HttpServletResponse} object
+     * @param _breq the initial request
+     * @param _text response text
+     * @param _b boolean to set whether the response text should be sent
      * @throws IOException
      */
     private void response(HttpServletResponse _response, Request _breq, String _text, boolean _b)
@@ -239,13 +224,14 @@ public class ChallengeHandler
 
     /**
      * Create a json response object for recommendation requests.
+     *
      * @param _itemsIDs a list as string
      * @return json
      */
     public static final String getRecommendationResultJSON(String _itemsIDs) {
 
         // TODO log invalid results
-        if (_itemsIDs == null ||_itemsIDs.length() == 0) {
+        if (_itemsIDs == null || _itemsIDs.length() == 0) {
             _itemsIDs = "[]";
         } else if (!_itemsIDs.trim().startsWith("[")) {
             _itemsIDs = "[" + _itemsIDs + "]";
@@ -256,5 +242,4 @@ public class ChallengeHandler
 
         return result;
     }
-
 }
