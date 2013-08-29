@@ -84,7 +84,8 @@ public class ChallengeHandler
 
             if (_breq.getContentLength() < 0) {
                 // handles first message from the server - returns OK
-                System.out.println("[INFO] Initial Message with no content received.");
+//                System.out.println("[INFO] Initial Message with no content received.");
+                logger.info("INITIAL_MSG");
                 response(_response, _breq, null, false);
             } else {
 
@@ -96,7 +97,7 @@ public class ChallengeHandler
                 if (_breq.getContentType().equals("application/x-www-form-urlencoded; charset=utf-8")) {
                     bodyMessage = URLDecoder.decode(bodyMessage, "utf-8");
                 }
-                System.out.println(_breq.getParameterMap());
+//                System.out.println(_breq.getParameterMap());
 
                 // delegate the request and create a response message
                 // send the response message as text
@@ -106,7 +107,7 @@ public class ChallengeHandler
             }
         } else {
             // GET requests are answered by a HTML page
-            logger.debug("Get request from " + _breq.getRemoteAddr());
+            logger.debug("GET_REQ\t" + _breq.getRemoteAddr());
             response(_response, _breq, "Visit <h3><a href=\"http://www.recommenders.net\">recommenders.net</a></h3>", true);
         }
     }
@@ -121,7 +122,7 @@ public class ChallengeHandler
     private String handleMessage(final String messageType, final String _jsonMessageBody) {
 
         // write all data from the server to a file
-        logger.info(messageType + "\t" + _jsonMessageBody);
+        logger.debug("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
 
         // define a response object
         String response = null;
@@ -151,51 +152,43 @@ public class ChallengeHandler
                 List<Long> resultList = recommender.recommend(input);
                 if (resultList == null) {
                     response = "[]";
-                    System.out.println("invalid resultList");
+//                    System.out.println("invalid resultList");
                 } else {
                     response = resultList.toString();
                 }
                 response = getRecommendationResultJSON(response);
-
                 // TODO? might handle the the request as impressions
             } catch (Throwable t) {
-                t.printStackTrace();
+                logger.error("EXCEPTION\t" + t.getMessage());
             }
         } else if (ChallengeMessage.MSG_EVENT_NOTIFICATION.equalsIgnoreCase(messageType)) {
-
             // parse the type of the event
             final Message item = message.parseEventNotification(_jsonMessageBody);
             final String eventNotificationType = item.getNotificationType();
-
             // impression refers to articles read by the user
             if (ChallengeMessage.MSG_NOTIFICATION_IMPRESSION.equalsIgnoreCase(eventNotificationType)) {
-
                 if (item.getItemID() != null) {
                     recommender.impression(item);
-
                     response = "handle impression eventNotification successful";
                 }
                 // click refers to recommendations clicked by the user
             } else if (ChallengeMessage.MSG_NOTIFICATION_CLICK.equalsIgnoreCase(eventNotificationType)) {
                 if (item.getItemID() != null) {
                     recommender.click(item);
-
                     response = "handle click eventNotification successful";
                 }
-
             } else {
-                System.out.println("unknown event-type: " + eventNotificationType + " (message ignored)");
+                logger.info("UNKNOWN_EVNT\t" + messageType + "\t" + _jsonMessageBody);
             }
 
         } else if (ChallengeMessage.MSG_ERROR_NOTIFICATION.equalsIgnoreCase(messageType)) {
-
-            System.out.println("error-notification: " + _jsonMessageBody);
+            logger.info("ERROR\t" + _jsonMessageBody);
 
         } else {
-            System.out.println("unknown MessageType: " + messageType);
             // Error handling
-            logger.info(_jsonMessageBody);
+            logger.info("UNKNOWN_MSG\t" + messageType + "\t" + _jsonMessageBody);
         }
+        logger.debug("RESPONSE\t" + response);
         return response;
     }
 
@@ -218,7 +211,8 @@ public class ChallengeHandler
         if (_text != null && _b) {
             _response.getWriter().println(_text);
             if (_text != null && !_text.startsWith("handle")) {
-                System.out.println("[SSSS] send response: " + _text);
+//                System.out.println("[SSSS] send response: " + _text);
+                logger.info("SEND\t" + _text);
             }
         }
     }

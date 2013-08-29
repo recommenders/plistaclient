@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An impression object. Should contain userID, itemID, domainID, and timeStamp.
@@ -39,6 +41,8 @@ import java.util.Map;
  */
 public class ChallengeMessage implements Message {
 
+    private final static Logger logger = LoggerFactory.getLogger(ChallengeMessage.class);
+    
     public final static String MSG_UPDATE = "item_update";
     public final static String MSG_REC_REQUEST = "recommendation_request";
     public final static String MSG_EVENT_NOTIFICATION = "event_notification";
@@ -383,7 +387,7 @@ public class ChallengeMessage implements Message {
             try {
                 timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
             } catch (Exception e) {
-                System.out.println("[Exception] no timestamp found in " + _jsonMessageBody);
+                logger.info("EXCEPTION\tno timestamp found\t" + _jsonMessageBody);
             }
 
             // parse date, now is default
@@ -429,32 +433,32 @@ public class ChallengeMessage implements Message {
             try {
                 domainID = Long.valueOf(jsonObjectContextSimple.get("27").toString());
             } catch (Exception e) {
-                System.out.println("[Exception] no domainID found in " + _jsonMessageBody);
+                logger.info("EXCEPTION\tno domainID found\t" + _jsonMessageBody);
             }
             Long itemID = null;
             try {
                 itemID = Long.valueOf(jsonObjectContextSimple.get("25").toString());
             } catch (Exception e) {
-                System.out.println("[Exception] no itemID found in " + _jsonMessageBody);
+                logger.info("EXCEPTION\tno itemID found\t" + _jsonMessageBody);
             }
             Long userID = -2L;
             try {
                 userID = Long.valueOf(jsonObjectContextSimple.get("57").toString());
             } catch (Exception e) {
-                System.out.println("[Exception] no userID found in " + _jsonMessageBody);
+                logger.info("EXCEPTION\tno userID found\t" + _jsonMessageBody);
             }
             Long timestamp = System.currentTimeMillis();
             try {
                 timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
             } catch (Exception e) {
-                System.out.println("[Exception] no timestamp found in " + _jsonMessageBody);
+                logger.info("EXCEPTION\tno timestamp found\t" + _jsonMessageBody);
             }
 
             Long limit = 0L;
             try {
                 limit = (Long) jsonObj.get("limit");
             } catch (Exception e) {
-                System.out.println("[Exception] no limit found in " + _jsonMessageBody);
+                logger.info("EXCEPTION\tno limit found\t" + _jsonMessageBody);
             }
             ChallengeMessage result = new ChallengeMessage(userID, itemID, domainID, timestamp);
             result.setNumberOfRequestedResults(limit.intValue());
@@ -491,7 +495,7 @@ public class ChallengeMessage implements Message {
             try {
                 itemID = Long.valueOf(jsonObjectContextSimple.get("25").toString());
             } catch (Exception e) {
-                System.out.println("[Exception] invalid itemID in " + jsonObjectContextSimple);
+                logger.info("EXCEPTION\tinvalid itemID\t" + jsonObjectContextSimple);
                 //e.printStackTrace();
             }
             Long userID = -2L;
@@ -499,16 +503,15 @@ public class ChallengeMessage implements Message {
                 userID = Long.valueOf(jsonObjectContextSimple.get("57").toString());
             } catch (Exception e) {
                 // TODO missing userID
-                System.out.println("[FFF] missing userID in " + jsonObjectContextSimple);
+                logger.info("EXCEPTION\tmissing userID\t" + jsonObjectContextSimple);
                 //e.printStackTrace();
             }
             Long timestamp = System.currentTimeMillis();
             try {
                 timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
             } catch (Exception e) {
-                System.out.println("[Exception] no timestamp found in " + _jsonMessageBody);
+                logger.info("EXCEPTION\tno timestamp found\t" + _jsonMessageBody);
             }
-
 
             // impressionType
             String notificationType = null;
@@ -523,7 +526,7 @@ public class ChallengeMessage implements Message {
             try {
                 JSONObject jsonObjectRecs = (JSONObject) jsonObj.get("recs");
                 if (jsonObjectRecs == null) {
-                    System.out.println("[INFO] impression without recs " + jsonObj);
+                    logger.info("EXCEPTION\timpression without recs\t" + jsonObj);
                 } else {
                     JSONObject jsonObjectRecsInt = (JSONObject) jsonObjectRecs.get("ints");
                     JSONArray array = (JSONArray) jsonObjectRecsInt.get("3");
