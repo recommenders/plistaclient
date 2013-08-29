@@ -29,10 +29,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.recommenders.plista.recommender.Recommender;
+import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class to handle the communication with the plista challenge server Functions:
@@ -48,7 +47,7 @@ public class ChallengeHandler
     /**
      * Define the default logger
      */
-    private final static Logger logger = LoggerFactory.getLogger(ChallengeHandler.class);
+    private final static Logger logger = Logger.getLogger(ChallengeHandler.class);
     /**
      * Define the default recommender, currently not used.
      */
@@ -122,7 +121,7 @@ public class ChallengeHandler
     private String handleMessage(final String messageType, final String _jsonMessageBody) {
 
         // write all data from the server to a file
-        logger.debug("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
+        logger.fatal("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
 
         // define a response object
         String response = null;
@@ -188,7 +187,7 @@ public class ChallengeHandler
             // Error handling
             logger.error("UNKNOWN_MSG\t" + messageType + "\t" + _jsonMessageBody);
         }
-        logger.debug("RESPONSE\t" + response);
+        logger.fatal("RESPONSE\t" + response);
         return response;
     }
 
