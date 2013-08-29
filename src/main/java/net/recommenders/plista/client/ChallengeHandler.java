@@ -182,11 +182,11 @@ public class ChallengeHandler
             }
 
         } else if (ChallengeMessage.MSG_ERROR_NOTIFICATION.equalsIgnoreCase(messageType)) {
-            logger.info("ERROR\t" + _jsonMessageBody);
+            logger.error("ERROR\t" + _jsonMessageBody);
 
         } else {
             // Error handling
-            logger.info("UNKNOWN_MSG\t" + messageType + "\t" + _jsonMessageBody);
+            logger.error("UNKNOWN_MSG\t" + messageType + "\t" + _jsonMessageBody);
         }
         logger.debug("RESPONSE\t" + response);
         return response;
