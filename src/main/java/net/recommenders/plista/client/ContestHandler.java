@@ -126,7 +126,7 @@ public class ContestHandler extends AbstractHandler implements Handler {
             // click refers to recommendations clicked by the user
             new Thread() {
                 public void run() {
-                    recommender.click(item);
+                    rec.click(item);
                 }
             }.start();
         } else {

@@ -132,7 +132,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
             try {
                 // parse the new recommender request
                 Message input = MESSAGE_PARSER.parseRecommendationRequest(messageBody);
-
+                rec.update(input);
                 // gather the items to be recommended
                 List<Long> resultList = rec.recommend(input);
                 if (resultList == null) {
