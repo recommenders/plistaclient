@@ -17,27 +17,28 @@
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  DEALINGS IN THE SOFTWARE.
  */
-
 package net.recommenders.plista.client;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
 import net.recommenders.plista.recommender.Recommender;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * The main class
- * Functions:
- *      - initializing and starting the http server
- *      - configuring the http server
- * Note: Configuration details may be provided as a properties file (args[0])
+ * The main class Functions: - initializing and starting the http server -
+ * configuring the http server Note: Configuration details may be provided as a
+ * properties file (args[0])
  *
  * @author andreas, alan, alejandro
  *
@@ -58,6 +59,7 @@ public class Client {
 
     /**
      * This method starts the server
+     *
      * @param args
      * @throws Exception
      */
@@ -69,9 +71,9 @@ public class Client {
         String recommenderClass = null;
         String handlerClass = null;
 
-        if(args.length < 3)
+        if (args.length < 3) {
             fileName = System.getProperty("propertyFile");
-        else{
+        } else {
             fileName = args[0];
             recommenderClass = args[1];
             handlerClass = args[2];
@@ -79,11 +81,9 @@ public class Client {
         // load the team properties
         try {
             properties.load(new FileInputStream(fileName));
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.error(e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
         Recommender recommender = null;
@@ -92,16 +92,14 @@ public class Client {
         try {
             final Class<?> transformClass = Class.forName(recommenderClass);
             recommender = (Recommender) transformClass.newInstance();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
             throw new IllegalArgumentException("No recommender specified or recommender not available.");
         }
         // configure log4j
         if (args.length >= 4 && args[3] != null) {
             PropertyConfigurator.configure(args[0]);
-        }
-        else {
+        } else {
             PropertyConfigurator.configure("log4j.properties");
         }
         // set up and start server
@@ -112,8 +110,7 @@ public class Client {
         try {
             final Class<?> transformClass = Class.forName(handlerClass);
             handler = (AbstractHandler) transformClass.getConstructor(Properties.class, Recommender.class).newInstance(properties, recommender);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
             throw new IllegalArgumentException("No handler specified or handler not available.");
         }
@@ -126,4 +123,37 @@ public class Client {
         server.join();
     }
 
+    public static class RecommenderInitializer {
+
+        public static void initRecommender(Handler handler, Recommender rec, Properties properties, String[] logFiles, String messageIdentifier) {
+            rec.setProperties(properties);
+            rec.init();
+
+            try {
+                for (String logFile : logFiles) {
+                    // get all the previous logs
+                    final FileFilter fileFilter = new WildcardFileFilter(logFile + ".*");
+                    final File[] files = new File(".").listFiles(fileFilter);
+                    for (File file : files) {
+                        processFile(file, handler, rec, messageIdentifier);
+                    }
+                    // get the last log
+                    processFile(new File(logFile), handler, rec, messageIdentifier);
+                }
+            } catch (IOException e) {
+            }
+        }
+
+        public static void processFile(File file, Handler handler, Recommender rec, String messageIdentifier) throws IOException {
+            BufferedReader in = new BufferedReader(new FileReader(file));
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                String[] toks = line.split("\t");
+                if (toks[0].equals(messageIdentifier)) {
+                    handler.handleMessage(toks[1], toks[2], rec, false);
+                }
+            }
+            in.close();
+        }
+    }
 }

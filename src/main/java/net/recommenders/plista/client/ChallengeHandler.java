@@ -41,8 +41,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
  * @author till, andreas, alan, alejandro
  *
  */
-public class ChallengeHandler
-        extends AbstractHandler {
+public class ChallengeHandler extends AbstractHandler implements Handler {
 
     /**
      * Define the default logger
@@ -52,7 +51,7 @@ public class ChallengeHandler
      * Define the default recommender, currently not used.
      */
     private Recommender recommender;
-    private Message message;
+    private static final Message MESSAGE_PARSER = new ChallengeMessage();
 
     /**
      * Constructor, sets some default values.
@@ -61,10 +60,8 @@ public class ChallengeHandler
      * @param _recommender
      */
     public ChallengeHandler(final Properties _properties, final Recommender _recommender) {
-
         this.recommender = _recommender;
-        this.message = new ChallengeMessage();
-
+        Client.RecommenderInitializer.initRecommender(this, recommender, _properties, new String[]{"data.log"}, "MESSAGE");
     }
 
     /**
@@ -111,6 +108,89 @@ public class ChallengeHandler
         }
     }
 
+    public String handleMessage(final String messageType, final String messageBody, final Recommender rec, final boolean doLogging) {
+        // define a response object
+        String response = null;
+
+        // TODO handle "item_create"
+
+        // in a complex if/switch statement we handle the differentTypes of messages
+        if (ChallengeMessage.MSG_UPDATE.equalsIgnoreCase(messageType)) {
+
+            // we extract itemID, domainID, text and the time, create/update
+            final Message recommenderItem = MESSAGE_PARSER.parseItemUpdate(messageBody);
+
+            // we mark this information in the article table
+            if (recommenderItem.getItemID() != null) {
+                rec.update(recommenderItem);
+            }
+
+            response = ";item_update successfull";
+        } else if (ChallengeMessage.MSG_REC_REQUEST.equalsIgnoreCase(messageType)) {
+
+            // we handle a recommendation request
+            try {
+                // parse the new recommender request
+                Message input = MESSAGE_PARSER.parseRecommendationRequest(messageBody);
+
+                // gather the items to be recommended
+                List<Long> resultList = rec.recommend(input);
+                if (resultList == null) {
+                    response = "[]";
+//                    System.out.println("invalid resultList");
+                } else {
+                    response = resultList.toString();
+                }
+                response = getRecommendationResultJSON(response);
+            } catch (Throwable t) {
+                if (doLogging) {
+                    logger.error("EXCEPTION\t" + t.getMessage());
+                }
+            }
+        } else if (ChallengeMessage.MSG_EVENT_NOTIFICATION.equalsIgnoreCase(messageType)) {
+            // parse the type of the event
+            final Message item = MESSAGE_PARSER.parseEventNotification(messageBody);
+            final String eventNotificationType = item.getNotificationType();
+            // impression refers to articles read by the user
+            if (ChallengeMessage.MSG_NOTIFICATION_IMPRESSION.equalsIgnoreCase(eventNotificationType)) {
+                if (item.getItemID() != null) {
+                    new Thread() {
+                        public void run() {
+                            rec.impression(item);
+                        }
+                    }.start();
+                    response = "handle impression eventNotification successful";
+                }
+                // click refers to recommendations clicked by the user
+            } else if (ChallengeMessage.MSG_NOTIFICATION_CLICK.equalsIgnoreCase(eventNotificationType)) {
+                if (item.getItemID() != null) {
+                    new Thread() {
+                        public void run() {
+                            rec.click(item);
+                        }
+                    }.start();
+                    response = "handle click eventNotification successful";
+                }
+            } else {
+                if (doLogging) {
+                    logger.info("UNKNOWN_EVNT\t" + messageType + "\t" + messageBody);
+                }
+            }
+
+        } else if (ChallengeMessage.MSG_ERROR_NOTIFICATION.equalsIgnoreCase(messageType)) {
+            if (doLogging) {
+                logger.error("ERROR\t" + messageBody);
+            }
+
+        } else {
+            // Error handling
+            if (doLogging) {
+                logger.error("UNKNOWN_MSG\t" + messageType + "\t" + messageBody);
+            }
+        }
+        return response;
+    }
+
     /**
      * Method to handle incoming messages from the server.
      *
@@ -123,70 +203,8 @@ public class ChallengeHandler
         // write all data from the server to a file
         logger.fatal("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
 
-        // define a response object
-        String response = null;
+        String response = handleMessage(messageType, _jsonMessageBody, recommender, true);
 
-        // TODO handle "item_create"
-
-        // in a complex if/switch statement we handle the differentTypes of messages
-        if (ChallengeMessage.MSG_UPDATE.equalsIgnoreCase(messageType)) {
-
-            // we extract itemID, domainID, text and the time, create/update
-            final Message recommenderItem = message.parseItemUpdate(_jsonMessageBody);
-
-            // we mark this information in the article table
-            if (recommenderItem.getItemID() != null) {
-                recommender.update(recommenderItem);
-            }
-
-            response = ";item_update successfull";
-        } else if (ChallengeMessage.MSG_REC_REQUEST.equalsIgnoreCase(messageType)) {
-
-            // we handle a recommendation request
-            try {
-                // parse the new recommender request
-                Message input = message.parseRecommendationRequest(_jsonMessageBody);
-
-                // gather the items to be recommended
-                List<Long> resultList = recommender.recommend(input);
-                if (resultList == null) {
-                    response = "[]";
-//                    System.out.println("invalid resultList");
-                } else {
-                    response = resultList.toString();
-                }
-                response = getRecommendationResultJSON(response);
-                // TODO? might handle the the request as impressions
-            } catch (Throwable t) {
-                logger.error("EXCEPTION\t" + t.getMessage());
-            }
-        } else if (ChallengeMessage.MSG_EVENT_NOTIFICATION.equalsIgnoreCase(messageType)) {
-            // parse the type of the event
-            final Message item = message.parseEventNotification(_jsonMessageBody);
-            final String eventNotificationType = item.getNotificationType();
-            // impression refers to articles read by the user
-            if (ChallengeMessage.MSG_NOTIFICATION_IMPRESSION.equalsIgnoreCase(eventNotificationType)) {
-                if (item.getItemID() != null) {
-                    recommender.impression(item);
-                    response = "handle impression eventNotification successful";
-                }
-                // click refers to recommendations clicked by the user
-            } else if (ChallengeMessage.MSG_NOTIFICATION_CLICK.equalsIgnoreCase(eventNotificationType)) {
-                if (item.getItemID() != null) {
-                    recommender.click(item);
-                    response = "handle click eventNotification successful";
-                }
-            } else {
-                logger.info("UNKNOWN_EVNT\t" + messageType + "\t" + _jsonMessageBody);
-            }
-
-        } else if (ChallengeMessage.MSG_ERROR_NOTIFICATION.equalsIgnoreCase(messageType)) {
-            logger.error("ERROR\t" + _jsonMessageBody);
-
-        } else {
-            // Error handling
-            logger.error("UNKNOWN_MSG\t" + messageType + "\t" + _jsonMessageBody);
-        }
         logger.fatal("RESPONSE\t" + response);
         return response;
     }
@@ -210,7 +228,6 @@ public class ChallengeHandler
         if (_text != null && _b) {
             _response.getWriter().println(_text);
             if (_text != null && !_text.startsWith("handle")) {
-//                System.out.println("[SSSS] send response: " + _text);
                 logger.info("SEND\t" + _text);
             }
         }
@@ -231,8 +248,7 @@ public class ChallengeHandler
             _itemsIDs = "[" + _itemsIDs + "]";
         }
         // build result as JSON according to formal requirements
-        String result = "{" + "\"recs\": {" + "\"ints\": {" + "\"3\": "
-                + _itemsIDs + "}" + "}}";
+        String result = "{" + "\"recs\": {" + "\"ints\": {" + "\"3\": " + _itemsIDs + "}" + "}}";
 
         return result;
     }

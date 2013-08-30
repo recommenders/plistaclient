@@ -23,8 +23,6 @@ import java.io.BufferedReader;
 import net.recommenders.plista.recommender.Recommender;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +32,7 @@ import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -43,29 +42,22 @@ import org.json.simple.JSONValue;
  * @author till
  *
  */
-public class ContestHandler
-        extends AbstractHandler {
+public class ContestHandler extends AbstractHandler implements Handler {
 
-    private final static Logger logger = LoggerFactory.getLogger(ContestHandler.class);
+    private final static Logger logger = Logger.getLogger(ContestHandler.class);
     private Recommender recommender;
-    private Message message;
+    private static final Message MESSAGE_PARSER = new ContestMessage();
     private final int teamID;
 
     public ContestHandler(final Properties _properties, final Recommender _recommender) {
-
         try {
             // set the item ID
             this.teamID = Integer.parseInt(_properties.getProperty("plista.teamId"));
-
-            // set propeties
-            _recommender.setProperties(_properties);
-
-            _recommender.init();
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("TEAM ID property must be set");
         }
         this.recommender = _recommender;
-        this.message = new ContestMessage();
+        Client.RecommenderInitializer.initRecommender(this, recommender, _properties, new String[]{"data.log"}, "MESSAGE");
     }
 
     /*
@@ -80,6 +72,7 @@ public class ContestHandler
         if (_breq.getMethod().equals("POST")) {
             if (_breq.getContentLength() < 0) {
                 // handles first message from the server - returns OK
+                logger.info("INITIAL_MSG");
                 response(_response, _breq, null, false);
             } else {
                 String responseText = null;
@@ -102,7 +95,7 @@ public class ContestHandler
                 try {
                     msg = jObj.get("msg").toString();
                 } catch (NullPointerException e) {
-                    logger.debug(e.getMessage());
+                    logger.error("EXCEPTION\t" + e.getMessage());
                 }
 
                 responseText = handleMessage(msg, line);
@@ -110,10 +103,39 @@ public class ContestHandler
             }
         } else {
             // handles get requests.
-            logger.debug("Get request from " + _breq.getRemoteAddr());
+            logger.debug("GET_REQ\t" + _breq.getRemoteAddr());
             response(_response, _breq, "Visit <h3><a href=\"http://www.recommenders.net\">recommenders.net</a></h3>", true);
         }
 
+    }
+
+    public String handleMessage(final String messageType, final String messageBody, final Recommender rec, final boolean doLogging) {
+        String response = null;
+        // parse the type of the event
+        final Message item = MESSAGE_PARSER.parseEventNotification(messageBody);
+
+        // impression refers to articles read by the user
+        if (messageType.equals(ContestMessage.MSG_IMPRESSION)) {
+            response = handleImpression(item);
+            new Thread() {
+                public void run() {
+                    rec.impression(item);
+                }
+            }.start();
+        } else if (messageType.equals(ContestMessage.MSG_FEEDBACK)) {
+            // click refers to recommendations clicked by the user
+            new Thread() {
+                public void run() {
+                    recommender.click(item);
+                }
+            }.start();
+        } else {
+            // Error handling
+            if (doLogging) {
+                logger.error("UNKNOWN_MSG\t" + messageType + "\t" + messageBody);
+            }
+        }
+        return response;
     }
 
     /**
@@ -126,37 +148,12 @@ public class ContestHandler
      */
     private String handleMessage(final String messageType, final String _jsonMessageBody) {
 
-        String response = null;
-        // make string to json object
-
-
         // write all data from the server to a file
-        logger.info(messageType + "\t" + _jsonMessageBody);
+        logger.fatal("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
 
-        // parse the type of the event
-        final Message item = message.parseEventNotification(_jsonMessageBody);
+        String response = handleMessage(messageType, _jsonMessageBody, recommender, true);
 
-        // impression refers to articles read by the user
-        if (messageType.equals(ContestMessage.MSG_IMPRESSION)) {
-
-
-            response = handleImpression(item);
-            new Thread() {
-                public void run() {
-                    recommender.impression(item);
-                }
-            }.start();
-            if (response != null) {
-                logger.info(response);
-            }
-            // click refers to recommendations clicked by the user
-        } else if (messageType.equals(ContestMessage.MSG_FEEDBACK)) {
-            handleFeedback(item);
-        } else {
-            // Error handling
-            logger.info(_jsonMessageBody);
-        }
-
+        logger.fatal("RESPONSE\t" + response);
         return response;
     }
 
@@ -171,8 +168,6 @@ public class ContestHandler
 
         final boolean recommend = _message.doRecommend();
         if (recommend) {
-            logger.debug("\nREQUEST: " + _message);
-
             final StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("{\"msg\":\"result\",\"items\":[");
 
@@ -189,21 +184,7 @@ public class ContestHandler
             stringBuilder.append("],\"team\":{\"id\":" + this.teamID + "},\"version\":\"1.0\"}");
             response = stringBuilder.toString();
         }
-        logger.debug("RESPOND: " + response);
         return response;
-    }
-
-    /**
-     * Method to handle feedback messages.
-     *
-     * @param _message incoming feedback message
-     * @return answer to the feedback message
-     */
-    private void handleFeedback(Message _message) {
-
-        logger.debug("! Feedback:" + _message + "!");
-        this.recommender.click(_message);
-
     }
 
     /**
