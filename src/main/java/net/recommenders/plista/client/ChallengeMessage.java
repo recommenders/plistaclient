@@ -406,7 +406,7 @@ public class ChallengeMessage implements Message {
             result.setItemTitle(title);
             result.setItemURL(url);
             result.setItemRecommendable(recommendable);
-
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
         }
