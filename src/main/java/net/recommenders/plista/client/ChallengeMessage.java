@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 public class ChallengeMessage implements Message {
 
     private final static Logger logger = LoggerFactory.getLogger(ChallengeMessage.class);
-    
     public final static String MSG_UPDATE = "item_update";
     public final static String MSG_REC_REQUEST = "recommendation_request";
     public final static String MSG_EVENT_NOTIFICATION = "event_notification";
@@ -74,12 +73,9 @@ public class ChallengeMessage implements Message {
     public static final Integer ITEM_TITLE_ID = 15;
     public static final Integer ITEM_CREATED_ID = 16;
     public static final Integer ITEM_URL_ID = 17;
+    public static final Integer ITEM_CATEGORY_ID = 17;
     public static final Integer DO_RECOMMEND_ID = 20;
     // /////////////////////////////////////////////////////////////////////////////////////////
-    /**
-     * the JSON content, might be null
-     */
-    private String json = null;
     /**
      * a hashMap storing the impression properties
      */
@@ -87,45 +83,16 @@ public class ChallengeMessage implements Message {
 
     // /////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * Default constructor.
-     */
-    public ChallengeMessage() {
-        super();
-    }
-
-    /**
-     * constructor.
-     *
-     * @param userID
-     * @param itemID
-     * @param domainID
-     * @param timeStamp
-     */
-    public ChallengeMessage(final Long userID, final Long itemID,
-            final Long domainID, final Long timeStamp) {
-        this();
-        this.valuesByID.put(USER_ID, userID);
-        this.valuesByID.put(ITEM_ID, itemID);
-        this.valuesByID.put(DOMAIN_ID, domainID);
-        this.valuesByID.put(TIMESTAMP_ID, timeStamp);
-    }
-
-    /**
-     * Does the impression contain plain JSON
-     *
-     * @return is JSON provided
-     */
-    public boolean supportsJSON() {
-        return this.json == null;
-    }
-
-    /**
      * Getter for userID. (convenience)
      *
      * @return the userID
      */
     public Long getUserID() {
         return (Long) valuesByID.get(USER_ID);
+    }
+
+    public void setUserID(final Long _userID) {
+        valuesByID.put(USER_ID, _userID);
     }
 
     /**
@@ -137,6 +104,10 @@ public class ChallengeMessage implements Message {
         return (Long) valuesByID.get(DOMAIN_ID);
     }
 
+    public void setDomainID(final Long id) {
+        valuesByID.put(DOMAIN_ID, id);
+    }
+
     /**
      * Getter for TimeStamp. (convenience)
      *
@@ -144,6 +115,10 @@ public class ChallengeMessage implements Message {
      */
     public Long getTimeStamp() {
         return (Long) valuesByID.get(TIMESTAMP_ID);
+    }
+
+    public void setTimeStamp(final Long timestamp) {
+        valuesByID.put(TIMESTAMP_ID, timestamp);
     }
 
     /**
@@ -162,6 +137,20 @@ public class ChallengeMessage implements Message {
      */
     public void setItemID(final Long _itemID) {
         valuesByID.put(ITEM_ID, _itemID);
+    }
+
+    @Override
+    public Long getItemSourceID() {
+        // not available
+        return null;
+    }
+
+    public Long getItemCategory() {
+        return (Long) valuesByID.get(ITEM_CATEGORY_ID);
+    }
+
+    public void setItemCategory(final Long category) {
+        valuesByID.put(ITEM_CATEGORY_ID, category);
     }
 
     /**
@@ -378,6 +367,7 @@ public class ChallengeMessage implements Message {
 
             String itemID = jsonObj.get("id") + "";
             String domainID = jsonObj.get("domainid") + "";
+            String categoryID = jsonObj.get("categoryid") + "";
             String text = jsonObj.get("text") + "";
             String title = jsonObj.get("title") + "";
             String url = jsonObj.get("url") + "";
@@ -400,7 +390,11 @@ public class ChallengeMessage implements Message {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            ChallengeMessage result = new ChallengeMessage(null /*userID*/, Long.valueOf(itemID), Long.valueOf(domainID), timestamp);
+            ChallengeMessage result = new ChallengeMessage();
+            result.setItemID(Long.valueOf(itemID));
+            result.setDomainID(Long.valueOf(domainID));
+            result.setItemCategory(Long.valueOf(categoryID));
+            result.setTimeStamp(timestamp);
             result.setItemCreated(created);
             result.setItemText(text);
             result.setItemTitle(title);
@@ -421,7 +415,6 @@ public class ChallengeMessage implements Message {
      * been detected.
      */
     public Message parseRecommendationRequest(String _jsonMessageBody) {
-
         try {
             final JSONObject jsonObj = (JSONObject) JSONValue.parse(_jsonMessageBody);
 
@@ -453,15 +446,27 @@ public class ChallengeMessage implements Message {
             } catch (Exception e) {
                 logger.info("EXCEPTION\tno timestamp found\t" + _jsonMessageBody);
             }
-
             Long limit = 0L;
             try {
                 limit = (Long) jsonObj.get("limit");
             } catch (Exception e) {
                 logger.info("EXCEPTION\tno limit found\t" + _jsonMessageBody);
             }
-            ChallengeMessage result = new ChallengeMessage(userID, itemID, domainID, timestamp);
+            Long category = null;
+            try {
+                JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");
+                category = Long.valueOf(jsonObjectContextLists.get("11").toString().replace("[", "").replace("]", ""));
+            } catch (Exception e) {
+                logger.info("EXCEPTION\tno category found\t" + _jsonMessageBody);
+            }
+
+            ChallengeMessage result = new ChallengeMessage();
+            result.setUserID(userID);
+            result.setItemID(itemID);
+            result.setDomainID(domainID);
+            result.setTimeStamp(timestamp);
             result.setNumberOfRequestedResults(limit.intValue());
+            result.setItemCategory(category);
 
             return result;
         } catch (Exception e) {
@@ -477,7 +482,6 @@ public class ChallengeMessage implements Message {
      * @return
      */
     public Message parseEventNotification(final String _jsonMessageBody) {
-
         try {
             final JSONObject jsonObj = (JSONObject) JSONValue.parse(_jsonMessageBody);
 
@@ -512,6 +516,13 @@ public class ChallengeMessage implements Message {
             } catch (Exception e) {
                 logger.info("EXCEPTION\tno timestamp found\t" + _jsonMessageBody);
             }
+            Long category = null;
+            try {
+                JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");
+                category = Long.valueOf(jsonObjectContextLists.get("11").toString().replace("[", "").replace("]", ""));
+            } catch (Exception e) {
+                logger.info("EXCEPTION\tno category found\t" + _jsonMessageBody);
+            }
 
             // impressionType
             String notificationType = null;
@@ -537,16 +548,17 @@ public class ChallengeMessage implements Message {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
             // create the result and return
-            ChallengeMessage result = new ChallengeMessage(userID, itemID, domainID, timestamp);
+            ChallengeMessage result = new ChallengeMessage();
+            result.setUserID(userID);
+            result.setItemID(itemID);
+            result.setDomainID(domainID);
+            result.setTimeStamp(timestamp);
             result.setNotificationType(notificationType);
             result.setListOfDisplayedRecs(listOfDisplayedRecs);
-
+            result.setItemCategory(category);
 
             return result;
-
-
         } catch (Throwable t) {
             t.printStackTrace();
             return null;

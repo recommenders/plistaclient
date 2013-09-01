@@ -19,9 +19,13 @@
  */
 package net.recommenders.plista.recommender;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import net.recommenders.plista.client.Message;
 
-import java.util.*;
 
 /*
  * Class to represent the table of items available to be recommended
@@ -55,9 +59,7 @@ public class RecentRecommender implements Recommender {
      * @return
      */
     @Override
-    public List<Long> recommend(final Message _currentRequest) {
-
-        Integer numberOfRequestedResults = _currentRequest.getNumberOfRequestedResults();
+    public List<Long> recommend(final Message _currentRequest, Integer numberOfRequestedResults) {
         Long itemID = _currentRequest.getItemID();
         Long domainID = _currentRequest.getDomainID();
 

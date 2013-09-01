@@ -47,6 +47,8 @@ public class ContestMessage implements Message {
     public static final Integer ITEM_TITLE_ID = 12;
     public static final Integer ITEM_URL_ID = 14;
     public static final Integer ITEM_CREATED_ID = 15;
+    public static final Integer ITEM_CATEGORY_ID = 15;
+    public static final Integer SOURCE_ID = 20;
     //
     private final Map<Integer, Object> valuesByID = new HashMap<Integer, Object>();
 
@@ -79,6 +81,14 @@ public class ContestMessage implements Message {
      */
     public void setItemID(final Long _itemID) {
         valuesByID.put(ITEM_ID, _itemID);
+    }
+
+    public Long getItemSourceID() {
+        return (Long) valuesByID.get(SOURCE_ID);
+    }
+
+    public void setItemSourceID(final Long id) {
+        valuesByID.put(SOURCE_ID, id);
     }
 
     /**
@@ -150,6 +160,14 @@ public class ContestMessage implements Message {
         valuesByID.put(ITEM_CREATED_ID, time);
     }
 
+    public Long getItemCategory() {
+        return (Long) valuesByID.get(ITEM_CATEGORY_ID);
+    }
+
+    public void setItemCategory(final Long time) {
+        valuesByID.put(ITEM_CATEGORY_ID, time);
+    }
+
     /**
      * Setter for recommendable
      *
@@ -219,27 +237,42 @@ public class ContestMessage implements Message {
             JSONObject jObj = getObject(_jsonMessageBody);
             ContestMessage message = new ContestMessage();
 
-            Long userID = getClientIdFromImpression(jObj);
-            message.setUserID(userID);
-            Long domain = getDomainId(jObj);
-            message.setDomainID(domain);
-            Long itemID = getItemIdFromImpression(jObj);
-            message.setItemID(itemID);
-            String title = getItemTitleFromImpression(jObj);
-            message.setItemTitle(title);
-            String text = getItemTextFromImpression(jObj);
-            message.setItemText(text);
-            String url = getItemUrlFromImpression(jObj);
-            message.setItemURL(url);
-            Boolean recommendable = getItemRecommendableFromImpression(jObj);
-            message.setItemRecommendable(recommendable);
-            Long created = getItemCreatedFromImpression(jObj);
-            message.setItemCreated(created);
-            Integer limit = getConfigLimitFromImpression(jObj);
-            message.setNumberOfRequestedResults(limit);
-            Boolean recommend = getConfigRecommendFromImpression(jObj);
-            message.setDoRecommend(recommend);
-            
+            if (isImpression(jObj)) {
+                Long userID = getClientIdFromImpression(jObj);
+                message.setUserID(userID);
+                Long domain = getDomainIdFromImpression(jObj);
+                message.setDomainID(domain);
+                Long itemID = getItemIdFromImpression(jObj);
+                message.setItemID(itemID);
+                String title = getItemTitleFromImpression(jObj);
+                message.setItemTitle(title);
+                String text = getItemTextFromImpression(jObj);
+                message.setItemText(text);
+                String url = getItemUrlFromImpression(jObj);
+                message.setItemURL(url);
+                Boolean recommendable = getItemRecommendableFromImpression(jObj);
+                message.setItemRecommendable(recommendable);
+                Long created = getItemCreatedFromImpression(jObj);
+                message.setItemCreated(created);
+                Long category = getContextCategoryIdFromImpression(jObj);
+                message.setItemCategory(category);
+                Integer limit = getConfigLimitFromImpression(jObj);
+                message.setNumberOfRequestedResults(limit);
+                Boolean recommend = getConfigRecommendFromImpression(jObj);
+                message.setDoRecommend(recommend);
+            } else if (isFeedback(jObj)) {
+                Long userID = getClientIdFromFeedback(jObj);
+                message.setUserID(userID);
+                Long domain = getDomainIdFromFeedback(jObj);
+                message.setDomainID(domain);
+                Long itemID = getTargetIdFromFeedback(jObj);
+                message.setItemID(itemID);
+                Long sourceID = getSourceIdFromFeedback(jObj);
+                message.setItemSourceID(sourceID);
+                Long category = getContextCategoryIdFromFeedback(jObj);
+                message.setItemCategory(category);
+            }
+
             return message;
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -267,9 +300,9 @@ public class ContestMessage implements Message {
         }
     }
 
-    public static Integer getContextCategoryId(JSONObject jObj) {
+    public static Long getContextCategoryId(JSONObject jObj) {
         try {
-            return jObj.getJSONObject("context").getJSONObject("category").getInt("id");
+            return jObj.getJSONObject("context").getJSONObject("category").getLong("id");
         } catch (Exception e) {
             logger.debug(e.getMessage());
             return null;
@@ -394,7 +427,7 @@ public class ContestMessage implements Message {
         }
     }
 
-    public static Integer getContextCategoryIdFromImpression(JSONObject jObj) {
+    public static Long getContextCategoryIdFromImpression(JSONObject jObj) {
         return getContextCategoryId(jObj);
     }
 
@@ -438,25 +471,25 @@ public class ContestMessage implements Message {
         return getDomainId(jObj);
     }
 
-    public static String getSourceIdFromFeedback(JSONObject jObj) {
+    public static Long getSourceIdFromFeedback(JSONObject jObj) {
         try {
-            return jObj.getJSONObject("source").getString("id");
+            return jObj.getJSONObject("source").getLong("id");
         } catch (Exception e) {
             logger.debug(e.getMessage());
             return null;
         }
     }
 
-    public static String getTargetIdFromFeedback(JSONObject jObj) {
+    public static Long getTargetIdFromFeedback(JSONObject jObj) {
         try {
-            return jObj.getJSONObject("target").getString("id");
+            return jObj.getJSONObject("target").getLong("id");
         } catch (Exception e) {
             logger.debug(e.getMessage());
             return null;
         }
     }
 
-    public static Integer getContextCategoryIdFromFeedback(JSONObject jObj) {
+    public static Long getContextCategoryIdFromFeedback(JSONObject jObj) {
         return getContextCategoryId(jObj);
     }
 

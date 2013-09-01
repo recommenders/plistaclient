@@ -171,7 +171,7 @@ public class ContestHandler extends AbstractHandler implements Handler {
             final StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("{\"msg\":\"result\",\"items\":[");
 
-            final List<Long> recs = this.recommender.recommend(_message);
+            final List<Long> recs = this.recommender.recommend(_message, _message.getNumberOfRequestedResults());
 
             for (final Iterator<Long> iterator = recs.iterator(); iterator.hasNext();) {
                 final Long contestItem = iterator.next();

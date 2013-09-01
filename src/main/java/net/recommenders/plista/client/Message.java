@@ -38,6 +38,8 @@ public interface Message {
      */
     public Long getItemID();
 
+    public Long getItemSourceID();
+
     /**
      * Getter for domainID. (convenience)
      *
@@ -65,6 +67,13 @@ public interface Message {
      * @return the title
      */
     public String getItemTitle();
+
+    /**
+     * Getter for category
+     *
+     * @return the category
+     */
+    public Long getItemCategory();
 
     /**
      * Getter for URL.

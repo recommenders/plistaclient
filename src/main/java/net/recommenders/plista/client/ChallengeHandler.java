@@ -134,7 +134,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
                 Message input = MESSAGE_PARSER.parseRecommendationRequest(messageBody);
                 rec.update(input);
                 // gather the items to be recommended
-                List<Long> resultList = rec.recommend(input);
+                List<Long> resultList = rec.recommend(input, input.getNumberOfRequestedResults());
                 if (resultList == null) {
                     response = "[]";
 //                    System.out.println("invalid resultList");

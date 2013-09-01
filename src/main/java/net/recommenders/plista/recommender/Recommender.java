@@ -40,7 +40,7 @@ public interface Recommender {
      * @param _input
      * @return
      */
-    public List<Long> recommend(final Message _input);
+    public List<Long> recommend(final Message _input, Integer limit);
 
     /**
      * Impression Information from the Plista server is send to this method
