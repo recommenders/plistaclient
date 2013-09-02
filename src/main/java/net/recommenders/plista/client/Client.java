@@ -135,11 +135,14 @@ public class Client {
                     final FileFilter fileFilter = new WildcardFileFilter(logFile + ".*");
                     final File[] files = new File(".").listFiles(fileFilter);
                     for (File file : files) {
+                        System.out.println("Processing " + file);
                         processFile(file, handler, rec, messageIdentifier);
                     }
                     // get the last log
+                    System.out.println("Processing " + logFile);
                     processFile(new File(logFile), handler, rec, messageIdentifier);
                 }
+                System.out.println("Finished initializer");
             } catch (IOException e) {
             }
         }
