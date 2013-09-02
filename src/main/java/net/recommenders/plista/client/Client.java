@@ -112,6 +112,7 @@ public class Client {
             handler = (AbstractHandler) transformClass.getConstructor(Properties.class, Recommender.class).newInstance(properties, recommender);
         } catch (Exception e) {
             logger.error(e.getMessage());
+            e.printStackTrace();
             throw new IllegalArgumentException("No handler specified or handler not available.");
         }
         final Server server = new Server(Integer.parseInt(properties.getProperty("plista.port", "8080")));

@@ -73,7 +73,7 @@ public class ChallengeMessage implements Message {
     public static final Integer ITEM_TITLE_ID = 15;
     public static final Integer ITEM_CREATED_ID = 16;
     public static final Integer ITEM_URL_ID = 17;
-    public static final Integer ITEM_CATEGORY_ID = 17;
+    public static final Integer ITEM_CATEGORY_ID = 18;
     public static final Integer DO_RECOMMEND_ID = 20;
     // /////////////////////////////////////////////////////////////////////////////////////////
     /**
@@ -367,7 +367,12 @@ public class ChallengeMessage implements Message {
 
             String itemID = jsonObj.get("id") + "";
             String domainID = jsonObj.get("domainid") + "";
-            String categoryID = jsonObj.get("categoryid") + "";
+            Long category = null;
+            try {
+                category = Long.parseLong(jsonObj.get("categoryid") + "");
+            } catch (Exception e) {
+                logger.info("EXCEPTION\tno category found\t" + _jsonMessageBody);
+            }
             String text = jsonObj.get("text") + "";
             String title = jsonObj.get("title") + "";
             String url = jsonObj.get("url") + "";
@@ -393,7 +398,7 @@ public class ChallengeMessage implements Message {
             ChallengeMessage result = new ChallengeMessage();
             result.setItemID(Long.valueOf(itemID));
             result.setDomainID(Long.valueOf(domainID));
-            result.setItemCategory(Long.valueOf(categoryID));
+            result.setItemCategory(category);
             result.setTimeStamp(timestamp);
             result.setItemCreated(created);
             result.setItemText(text);
@@ -519,7 +524,10 @@ public class ChallengeMessage implements Message {
             Long category = null;
             try {
                 JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");
-                category = Long.valueOf(jsonObjectContextLists.get("11").toString().replace("[", "").replace("]", ""));
+                JSONArray categories = (JSONArray) jsonObjectContextLists.get("11");
+                for (Object e : categories) {
+                    category = Long.parseLong(e + "");
+                }
             } catch (Exception e) {
                 logger.info("EXCEPTION\tno category found\t" + _jsonMessageBody);
             }
