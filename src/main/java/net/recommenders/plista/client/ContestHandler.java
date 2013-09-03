@@ -32,6 +32,8 @@ import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -48,9 +50,11 @@ public class ContestHandler extends AbstractHandler implements Handler {
     private Recommender recommender;
     private static final Message MESSAGE_PARSER = new ContestMessage();
     private final int teamID;
+    private ExecutorService pool;
 
     public ContestHandler(final Properties _properties, final Recommender _recommender) {
         try {
+            this.pool = Executors.newFixedThreadPool(Integer.parseInt(_properties.getProperty("plista.nThreads", "8")));
             // set the item ID
             this.teamID = Integer.parseInt(_properties.getProperty("plista.teamId"));
         } catch (NumberFormatException e) {
@@ -117,18 +121,20 @@ public class ContestHandler extends AbstractHandler implements Handler {
         // impression refers to articles read by the user
         if (messageType.equals(ContestMessage.MSG_IMPRESSION)) {
             response = handleImpression(item);
-            new Thread() {
+            pool.execute(
+                    new Thread() {
                 public void run() {
                     rec.impression(item);
                 }
-            }.start();
+            });
         } else if (messageType.equals(ContestMessage.MSG_FEEDBACK)) {
             // click refers to recommendations clicked by the user
-            new Thread() {
+            pool.execute(
+                    new Thread() {
                 public void run() {
                     rec.click(item);
                 }
-            }.start();
+            });
         } else {
             // Error handling
             if (doLogging) {

@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -52,6 +54,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
      */
     private Recommender recommender;
     private static final Message MESSAGE_PARSER = new ChallengeMessage();
+    private ExecutorService pool;
 
     /**
      * Constructor, sets some default values.
@@ -60,6 +63,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
      * @param _recommender
      */
     public ChallengeHandler(final Properties _properties, final Recommender _recommender) {
+        this.pool = Executors.newFixedThreadPool(Integer.parseInt(_properties.getProperty("plista.nThreads", "8")));
         this.recommender = _recommender;
         Client.RecommenderInitializer.initRecommender(this, recommender, _properties, new String[]{"data.log"}, "MESSAGE");
     }
@@ -154,21 +158,23 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
             // impression refers to articles read by the user
             if (ChallengeMessage.MSG_NOTIFICATION_IMPRESSION.equalsIgnoreCase(eventNotificationType)) {
                 if (item.getItemID() != null) {
-                    new Thread() {
+                    pool.execute(
+                            new Thread() {
                         public void run() {
                             rec.impression(item);
                         }
-                    }.start();
+                    });
                     response = "handle impression eventNotification successful";
                 }
                 // click refers to recommendations clicked by the user
             } else if (ChallengeMessage.MSG_NOTIFICATION_CLICK.equalsIgnoreCase(eventNotificationType)) {
                 if (item.getItemID() != null) {
-                    new Thread() {
+                    pool.execute(
+                            new Thread() {
                         public void run() {
                             rec.click(item);
                         }
-                    }.start();
+                    });
                     response = "handle click eventNotification successful";
                 }
             } else {
