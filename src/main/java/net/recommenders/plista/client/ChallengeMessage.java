@@ -46,6 +46,7 @@ public class ChallengeMessage implements Message {
     public final static String MSG_REC_REQUEST = "recommendation_request";
     public final static String MSG_EVENT_NOTIFICATION = "event_notification";
     public final static String MSG_NOTIFICATION_IMPRESSION = "impression";
+    public final static String MSG_NOTIFICATION_IMPRESSION_EMPTY = "impression_empty";
     public final static String MSG_NOTIFICATION_CLICK = "click";
     public final static String MSG_ERROR_NOTIFICATION = "error_notification";
     /**
@@ -361,55 +362,84 @@ public class ChallengeMessage implements Message {
      * been detected.
      */
     public Message parseItemUpdate(String _jsonMessageBody) {
+        ChallengeMessage result = new ChallengeMessage();
         try {
-            final JSONObject jsonObj = (JSONObject) JSONValue
-                    .parse(_jsonMessageBody);
-
-            String itemID = jsonObj.get("id") + "";
-            String domainID = jsonObj.get("domainid") + "";
-            Long category = null;
-            try {
-                category = Long.parseLong(jsonObj.get("categoryid") + "");
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno category found\t" + _jsonMessageBody);
+            final JSONObject jsonObj = (JSONObject) JSONValue.parse(_jsonMessageBody);
+            if (jsonObj == null) {
+                logger.info("ERROR\tinvalid json object in update\t" + _jsonMessageBody);
+            } else {
+                Long domainID = null;
+                try {
+                    domainID = Long.valueOf(jsonObj.get("domainid").toString());
+                } catch (Exception e) {
+                    logger.info("ERROR\tno domainID found in update\t" + jsonObj);
+                }
+                result.setDomainID(domainID);
+                Long itemID = null;
+                try {
+                    itemID = Long.valueOf(jsonObj.get("id").toString());
+                } catch (Exception e) {
+                    logger.info("ERROR\tno itemID found in update\t" + jsonObj);
+                }
+                result.setItemID(itemID);
+                Long category = null;
+                try {
+                    category = Long.parseLong(jsonObj.get("categoryid") + "");
+                } catch (Exception e) {
+                    logger.info("ERROR\tno category found in update\t" + jsonObj);
+                }
+                result.setItemCategory(category);
+                String text = null;
+                try {
+                    text = jsonObj.get("text") + "";
+                } catch (Exception e) {
+                    logger.info("ERROR\tno text found in update\t" + jsonObj);
+                }
+                result.setItemText(text);
+                String title = null;
+                try {
+                    title = jsonObj.get("title") + "";
+                } catch (Exception e) {
+                    logger.info("ERROR\tno title found in update\t" + jsonObj);
+                }
+                result.setItemTitle(title);
+                String url = null;
+                try {
+                    url = jsonObj.get("url") + "";
+                } catch (Exception e) {
+                    logger.info("ERROR\tno url found in update\t" + jsonObj);
+                }
+                result.setItemURL(url);
+                Boolean recommendable = null;
+                try {
+                    String flag = jsonObj.get("flag") + "";
+                    recommendable = ("0".equals(flag));
+                } catch (Exception e) {
+                    logger.info("ERROR\tno recommendable found in update\t" + jsonObj);
+                }
+                result.setItemRecommendable(recommendable);
+                Long timestamp = null;
+                try {
+                    timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
+                } catch (Exception e) {
+                    logger.info("ERROR\tno timestamp found in update\t" + jsonObj);
+                }
+                result.setTimeStamp(timestamp);
+                Long created = null;
+                try {
+                    String createdAt = jsonObj.get("created_at") + "";
+                    SimpleDateFormat sdf;
+                    sdf = ChallengeMessage.sdf.get();
+                    created = sdf.parse(createdAt).getTime();
+                } catch (Exception e) {
+                    logger.info("ERROR\tno created_at found in update\t" + jsonObj);
+                }
+                result.setItemCreated(created);
             }
-            String text = jsonObj.get("text") + "";
-            String title = jsonObj.get("title") + "";
-            String url = jsonObj.get("url") + "";
-            String flag = jsonObj.get("flag") + "";
-            boolean recommendable = ("0".equals(flag));
-            Long timestamp = System.currentTimeMillis();
-            try {
-                timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno timestamp found\t" + _jsonMessageBody);
-            }
-
-            // parse date, now is default
-            String createdAt = jsonObj.get("created_at") + "";
-            Long created = System.currentTimeMillis();
-            try {
-                SimpleDateFormat sdf;
-                sdf = ChallengeMessage.sdf.get();
-                created = sdf.parse(createdAt).getTime();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            ChallengeMessage result = new ChallengeMessage();
-            result.setItemID(Long.valueOf(itemID));
-            result.setDomainID(Long.valueOf(domainID));
-            result.setItemCategory(category);
-            result.setTimeStamp(timestamp);
-            result.setItemCreated(created);
-            result.setItemText(text);
-            result.setItemTitle(title);
-            result.setItemURL(url);
-            result.setItemRecommendable(recommendable);
-            return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info("EXCEPTION\t" + e.getMessage() + "\t" + _jsonMessageBody);
         }
-        return null;
+        return result;
     }
 
     /**
@@ -420,64 +450,78 @@ public class ChallengeMessage implements Message {
      * been detected.
      */
     public Message parseRecommendationRequest(String _jsonMessageBody) {
+        ChallengeMessage result = new ChallengeMessage();
         try {
             final JSONObject jsonObj = (JSONObject) JSONValue.parse(_jsonMessageBody);
-
-            // parse JSON structure to obtain "context.simple"	
-            JSONObject jsonObjectContext = (JSONObject) jsonObj.get("context");
-            JSONObject jsonObjectContextSimple = (JSONObject) jsonObjectContext.get("simple");
-
-            Long domainID = -3L;
-            try {
-                domainID = Long.valueOf(jsonObjectContextSimple.get("27").toString());
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno domainID found\t" + _jsonMessageBody);
+            if (jsonObj == null) {
+                logger.info("ERROR\tinvalid json object in event not\t" + _jsonMessageBody);
+            } else {
+                // parse JSON structure to obtain "context.simple"
+                JSONObject jsonObjectContext = (JSONObject) jsonObj.get("context");
+                if (jsonObjectContext == null) {
+                    logger.info("ERROR\tcontext not found in event not\t" + jsonObj);
+                } else {
+                    JSONObject jsonObjectContextSimple = (JSONObject) jsonObjectContext.get("simple");
+                    if (jsonObjectContextSimple == null) {
+                        logger.info("ERROR\tcontext.simple not found in event not\t" + jsonObjectContext);
+                    } else {
+                        Long domainID = null;
+                        try {
+                            domainID = Long.valueOf(jsonObjectContextSimple.get("27").toString());
+                        } catch (Exception e) {
+                            logger.info("ERROR\tno domainID found in rec req\t" + jsonObjectContextSimple);
+                        }
+                        result.setDomainID(domainID);
+                        Long itemID = null;
+                        try {
+                            itemID = Long.valueOf(jsonObjectContextSimple.get("25").toString());
+                        } catch (Exception e) {
+                            logger.info("ERROR\tno itemID found in rec req\t" + jsonObjectContextSimple);
+                        }
+                        result.setItemID(itemID);
+                        Long userID = null;
+                        try {
+                            userID = Long.valueOf(jsonObjectContextSimple.get("57").toString());
+                        } catch (Exception e) {
+                            logger.info("ERROR\tno userID found in rec req\t" + jsonObjectContextSimple);
+                        }
+                        result.setUserID(userID);
+                    }
+                    Long category = null;
+                    JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");
+                    if (jsonObjectContextLists == null) {
+                        logger.info("ERROR\tno lists found in rec req\t" + _jsonMessageBody);
+                    } else {
+                        JSONArray categories = (JSONArray) jsonObjectContextLists.get("11");
+                        if (categories == null) {
+                            logger.info("ERROR\tno lists.11 (category) found in rec req\t" + _jsonMessageBody);
+                        } else {
+                            for (Object e : categories) {
+                                category = Long.parseLong(e + "");
+                            }
+                        }
+                    }
+                    result.setItemCategory(category);
+                }
+                Long timestamp = System.currentTimeMillis();
+                try {
+                    timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
+                } catch (Exception e) {
+                    logger.info("ERROR\tno timestamp found in rec req\t" + _jsonMessageBody);
+                }
+                result.setTimeStamp(timestamp);
+                Integer limit = 0;
+                try {
+                    limit = (Integer) jsonObj.get("limit");
+                } catch (Exception e) {
+                    logger.info("ERROR\tno limit found in rec req\t" + _jsonMessageBody);
+                }
+                result.setNumberOfRequestedResults(limit.intValue());
             }
-            Long itemID = null;
-            try {
-                itemID = Long.valueOf(jsonObjectContextSimple.get("25").toString());
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno itemID found\t" + _jsonMessageBody);
-            }
-            Long userID = -2L;
-            try {
-                userID = Long.valueOf(jsonObjectContextSimple.get("57").toString());
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno userID found\t" + _jsonMessageBody);
-            }
-            Long timestamp = System.currentTimeMillis();
-            try {
-                timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno timestamp found\t" + _jsonMessageBody);
-            }
-            Long limit = 0L;
-            try {
-                limit = (Long) jsonObj.get("limit");
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno limit found\t" + _jsonMessageBody);
-            }
-            Long category = null;
-            try {
-                JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");
-                category = Long.valueOf(jsonObjectContextLists.get("11").toString().replace("[", "").replace("]", ""));
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno category found\t" + _jsonMessageBody);
-            }
-
-            ChallengeMessage result = new ChallengeMessage();
-            result.setUserID(userID);
-            result.setItemID(itemID);
-            result.setDomainID(domainID);
-            result.setTimeStamp(timestamp);
-            result.setNumberOfRequestedResults(limit.intValue());
-            result.setItemCategory(category);
-
-            return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info("EXCEPTION\t" + e.getMessage() + "\t" + _jsonMessageBody);
         }
-        return null;
+        return result;
     }
 
     /**
@@ -487,89 +531,101 @@ public class ChallengeMessage implements Message {
      * @return
      */
     public Message parseEventNotification(final String _jsonMessageBody) {
+        ChallengeMessage result = new ChallengeMessage();
         try {
             final JSONObject jsonObj = (JSONObject) JSONValue.parse(_jsonMessageBody);
 
-            // parse JSON structure to obtain "context.simple"
-            JSONObject jsonObjectContext = (JSONObject) jsonObj.get("context");
-            JSONObject jsonObjectContextSimple = (JSONObject) jsonObjectContext.get("simple");
-
-            Long domainID = null;
-            try {
-                domainID = Long.valueOf(jsonObjectContextSimple.get("27").toString());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            Long itemID = null;
-            try {
-                itemID = Long.valueOf(jsonObjectContextSimple.get("25").toString());
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tinvalid itemID\t" + jsonObjectContextSimple);
-                //e.printStackTrace();
-            }
-            Long userID = -2L;
-            try {
-                userID = Long.valueOf(jsonObjectContextSimple.get("57").toString());
-            } catch (Exception e) {
-                // TODO missing userID
-                logger.info("EXCEPTION\tmissing userID\t" + jsonObjectContextSimple);
-                //e.printStackTrace();
-            }
-            Long timestamp = System.currentTimeMillis();
-            try {
-                timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno timestamp found\t" + _jsonMessageBody);
-            }
-            Long category = null;
-            try {
-                JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");
-                JSONArray categories = (JSONArray) jsonObjectContextLists.get("11");
-                for (Object e : categories) {
-                    category = Long.parseLong(e + "");
+            if (jsonObj == null) {
+                logger.info("ERROR\tinvalid json object in event not\t" + _jsonMessageBody);
+            } else {
+                // parse JSON structure to obtain "context.simple"
+                JSONObject jsonObjectContext = (JSONObject) jsonObj.get("context");
+                if (jsonObjectContext == null) {
+                    logger.info("ERROR\tcontext not found in event not\t" + jsonObj);
+                } else {
+                    JSONObject jsonObjectContextSimple = (JSONObject) jsonObjectContext.get("simple");
+                    if (jsonObjectContextSimple == null) {
+                        logger.info("ERROR\tcontext.simple not found in event not\t" + jsonObjectContext);
+                    } else {
+                        Long domainID = null;
+                        try {
+                            domainID = Long.valueOf(jsonObjectContextSimple.get("27").toString());
+                        } catch (Exception e) {
+                            logger.info("ERROR\tinvalid domainID in event not\t" + jsonObjectContextSimple);
+                        }
+                        result.setDomainID(domainID);
+                        Long itemID = null;
+                        try {
+                            itemID = Long.valueOf(jsonObjectContextSimple.get("25").toString());
+                        } catch (Exception e) {
+                            logger.info("ERROR\tinvalid itemID in event not\t" + jsonObjectContextSimple);
+                        }
+                        result.setItemID(itemID);
+                        Long userID = null;
+                        try {
+                            userID = Long.valueOf(jsonObjectContextSimple.get("57").toString());
+                        } catch (Exception e) {
+                            logger.info("ERROR\tmissing userID in event not\t" + jsonObjectContextSimple);
+                        }
+                        result.setUserID(userID);
+                    }
+                    Long category = null;
+                    JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");
+                    if (jsonObjectContextLists == null) {
+                        logger.info("ERROR\tno lists found in event not\t" + _jsonMessageBody);
+                    } else {
+                        JSONArray categories = (JSONArray) jsonObjectContextLists.get("11");
+                        if (categories == null) {
+                            logger.info("ERROR\tno lists.11 (category) found in event not\t" + _jsonMessageBody);
+                        } else {
+                            for (Object e : categories) {
+                                category = Long.parseLong(e + "");
+                            }
+                        }
+                    }
+                    result.setItemCategory(category);
                 }
-            } catch (Exception e) {
-                logger.info("EXCEPTION\tno category found\t" + _jsonMessageBody);
-            }
+                Long timestamp = System.currentTimeMillis();
+                try {
+                    timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
+                } catch (Exception e) {
+                    logger.info("ERROR\tno timestamp found in event not\t" + _jsonMessageBody);
+                }
+                result.setTimeStamp(timestamp);
+                // impressionType
+                String notificationType = null;
+                try {
+                    notificationType = jsonObj.get("type") + "";
+                } catch (Exception e) {
+                    logger.info("ERROR\tno type found in event not\t" + jsonObj);
+                }
+                result.setNotificationType(notificationType);
 
-            // impressionType
-            String notificationType = null;
-            try {
-                notificationType = jsonObj.get("type") + "";
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // list of displayed recs
-            List<Long> listOfDisplayedRecs = new ArrayList<Long>(6);
-            try {
+                // list of displayed recs
+                List<Long> listOfDisplayedRecs = new ArrayList<Long>(6);
                 JSONObject jsonObjectRecs = (JSONObject) jsonObj.get("recs");
                 if (jsonObjectRecs == null) {
-                    logger.info("EXCEPTION\timpression without recs\t" + jsonObj);
+                    logger.info("ERROR\timpression without recs in event not\t" + jsonObj);
                 } else {
                     JSONObject jsonObjectRecsInt = (JSONObject) jsonObjectRecs.get("ints");
-                    JSONArray array = (JSONArray) jsonObjectRecsInt.get("3");
-                    for (Object arrayEntry : array) {
-                        listOfDisplayedRecs.add(Long.valueOf(arrayEntry + ""));
+                    if (jsonObjectRecsInt == null) {
+                        logger.info("ERROR\timpression without recs.int in event not\t" + jsonObj);
+                    } else {
+                        JSONArray array = (JSONArray) jsonObjectRecsInt.get("3");
+                        if (array == null) {
+                            logger.info("ERROR\timpression without recs.int.3 (displayed recs) in event not\t" + jsonObj);
+                        } else {
+                            for (Object arrayEntry : array) {
+                                listOfDisplayedRecs.add(Long.valueOf(arrayEntry + ""));
+                            }
+                        }
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+                result.setListOfDisplayedRecs(listOfDisplayedRecs);
             }
-            // create the result and return
-            ChallengeMessage result = new ChallengeMessage();
-            result.setUserID(userID);
-            result.setItemID(itemID);
-            result.setDomainID(domainID);
-            result.setTimeStamp(timestamp);
-            result.setNotificationType(notificationType);
-            result.setListOfDisplayedRecs(listOfDisplayedRecs);
-            result.setItemCategory(category);
-
-            return result;
         } catch (Throwable t) {
-            t.printStackTrace();
-            return null;
+            logger.info("EXCEPTION\t" + t.getMessage() + "\t" + _jsonMessageBody);
         }
+        return result;
     }
 }

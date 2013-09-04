@@ -113,39 +113,32 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
     }
 
     public String handleMessage(final String messageType, final String messageBody, final Recommender rec, final boolean doLogging) {
-        // define a response object
-        String response = null;
-
         // TODO handle "item_create"
 
-        // in a complex if/switch statement we handle the differentTypes of messages
         if (ChallengeMessage.MSG_UPDATE.equalsIgnoreCase(messageType)) {
-
-            // we extract itemID, domainID, text and the time, create/update
             final Message recommenderItem = MESSAGE_PARSER.parseItemUpdate(messageBody);
-
-            // we mark this information in the article table
             if (recommenderItem.getItemID() != null) {
                 rec.update(recommenderItem);
+                return ";item_update successfull";
             }
-
-            response = ";item_update successfull";
+            return "handle update noitemID unsuccessful";
         } else if (ChallengeMessage.MSG_REC_REQUEST.equalsIgnoreCase(messageType)) {
 
             // we handle a recommendation request
             try {
                 // parse the new recommender request
                 Message input = MESSAGE_PARSER.parseRecommendationRequest(messageBody);
-                rec.update(input);
-                // gather the items to be recommended
-                List<Long> resultList = rec.recommend(input, input.getNumberOfRequestedResults());
-                if (resultList == null) {
-                    response = "[]";
-//                    System.out.println("invalid resultList");
-                } else {
-                    response = resultList.toString();
+                if (input.getItemID() != null) {
+                    rec.update(input);
+                    // gather the items to be recommended
+                    List<Long> resultList = rec.recommend(input, input.getNumberOfRequestedResults());
+                    String s = "[]";
+                    if (resultList != null) {
+                        s = resultList.toString();
+                    }
+                    return getRecommendationResultJSON(s);
                 }
-                response = getRecommendationResultJSON(response);
+                return "handle recommendation noitemID unsuccessful";
             } catch (Throwable t) {
                 if (doLogging) {
                     logger.error("EXCEPTION\t" + t.getMessage());
@@ -164,8 +157,20 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
                             rec.impression(item);
                         }
                     });
-                    response = "handle impression eventNotification successful";
+                    return "handle impression eventNotification successful";
                 }
+                return "handle impression noitemID unsuccessful";
+            } else if (ChallengeMessage.MSG_NOTIFICATION_IMPRESSION_EMPTY.equalsIgnoreCase(eventNotificationType)) {
+                if (item.getItemID() != null) {
+                    pool.execute(
+                            new Thread() {
+                        public void run() {
+                            rec.impression(item);
+                        }
+                    });
+                    return "handle impression_empty eventNotification successful";
+                }
+                return "handle impression_empty noitemID unsuccessful";
                 // click refers to recommendations clicked by the user
             } else if (ChallengeMessage.MSG_NOTIFICATION_CLICK.equalsIgnoreCase(eventNotificationType)) {
                 if (item.getItemID() != null) {
@@ -175,7 +180,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
                             rec.click(item);
                         }
                     });
-                    response = "handle click eventNotification successful";
+                    return "handle click eventNotification successful";
                 }
             } else {
                 if (doLogging) {
@@ -194,7 +199,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
                 logger.error("UNKNOWN_MSG\t" + messageType + "\t" + messageBody);
             }
         }
-        return response;
+        return "handle unsuccessful " + messageType + " ; " + messageBody;
     }
 
     /**
