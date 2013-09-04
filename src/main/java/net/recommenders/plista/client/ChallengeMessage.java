@@ -75,6 +75,7 @@ public class ChallengeMessage implements Message {
     public static final Integer ITEM_URL_ID = 17;
     public static final Integer ITEM_CATEGORY_ID = 18;
     public static final Integer DO_RECOMMEND_ID = 20;
+    public static final Integer ITEM_CONTENT_ID = 21;
     // /////////////////////////////////////////////////////////////////////////////////////////
     /**
      * a hashMap storing the impression properties
@@ -185,6 +186,26 @@ public class ChallengeMessage implements Message {
         valuesByID.put(ITEM_TITLE_ID, title);
     }
 
+    /**
+     * Getter for content (convenience).
+     *
+     * @return the content
+     */
+    public String getItemContent() {
+        return (String) valuesByID.get(ITEM_CONTENT_ID);
+    }
+
+    /**
+     * Setter for content. (convenience)
+     *
+     * @param content the content.
+     */
+    public void setItemContent(final String content) {
+        valuesByID.put(ITEM_CONTENT_ID, content);
+    }
+
+
+
     @Override
     public String getItemURL() {
         return (String) valuesByID.get(ITEM_URL_ID);
@@ -193,7 +214,7 @@ public class ChallengeMessage implements Message {
     /**
      * Setter for title. (convenience)
      *
-     * @param title the title.
+     * @param url the title.
      */
     public void setItemURL(final String url) {
         valuesByID.put(ITEM_URL_ID, url);
