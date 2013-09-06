@@ -77,6 +77,7 @@ public class ChallengeMessage implements Message {
     public static final Integer ITEM_CATEGORY_ID = 18;
     public static final Integer DO_RECOMMEND_ID = 20;
     public static final Integer ITEM_CONTENT_ID = 21;
+    public static final Integer SOURCE_ITEM_ID = 22;
     // /////////////////////////////////////////////////////////////////////////////////////////
     /**
      * a hashMap storing the impression properties
@@ -141,10 +142,13 @@ public class ChallengeMessage implements Message {
         valuesByID.put(ITEM_ID, _itemID);
     }
 
+    public void setItemSourceID(final Long _itemID) {
+        valuesByID.put(SOURCE_ITEM_ID, _itemID);
+    }
+
     @Override
     public Long getItemSourceID() {
-        // not available
-        return null;
+        return (Long) valuesByID.get(SOURCE_ITEM_ID);
     }
 
     public Long getItemCategory() {
@@ -204,8 +208,6 @@ public class ChallengeMessage implements Message {
     public void setItemContent(final String content) {
         valuesByID.put(ITEM_CONTENT_ID, content);
     }
-
-
 
     @Override
     public String getItemURL() {
@@ -559,6 +561,21 @@ public class ChallengeMessage implements Message {
             if (jsonObj == null) {
                 logger.info("ERROR\tinvalid json object in event not\t" + _jsonMessageBody);
             } else {
+                Long timestamp = System.currentTimeMillis();
+                try {
+                    timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
+                } catch (Exception e) {
+                    logger.info("ERROR\tno timestamp found in event not\t" + _jsonMessageBody);
+                }
+                result.setTimeStamp(timestamp);
+                // impressionType
+                String notificationType = null;
+                try {
+                    notificationType = jsonObj.get("type") + "";
+                } catch (Exception e) {
+                    logger.info("ERROR\tno type found in event not\t" + jsonObj);
+                }
+                result.setNotificationType(notificationType);
                 // parse JSON structure to obtain "context.simple"
                 JSONObject jsonObjectContext = (JSONObject) jsonObj.get("context");
                 if (jsonObjectContext == null) {
@@ -606,22 +623,6 @@ public class ChallengeMessage implements Message {
                     }
                     result.setItemCategory(category);
                 }
-                Long timestamp = System.currentTimeMillis();
-                try {
-                    timestamp = Long.valueOf(jsonObj.get("timestamp").toString());
-                } catch (Exception e) {
-                    logger.info("ERROR\tno timestamp found in event not\t" + _jsonMessageBody);
-                }
-                result.setTimeStamp(timestamp);
-                // impressionType
-                String notificationType = null;
-                try {
-                    notificationType = jsonObj.get("type") + "";
-                } catch (Exception e) {
-                    logger.info("ERROR\tno type found in event not\t" + jsonObj);
-                }
-                result.setNotificationType(notificationType);
-
                 // list of displayed recs
                 List<Long> listOfDisplayedRecs = new ArrayList<Long>(6);
                 JSONObject jsonObjectRecs = (JSONObject) jsonObj.get("recs");
@@ -643,6 +644,15 @@ public class ChallengeMessage implements Message {
                     }
                 }
                 result.setListOfDisplayedRecs(listOfDisplayedRecs);
+                if (MSG_NOTIFICATION_CLICK.equals(notificationType)) {
+                    Long source = result.getItemID();
+                    Long target = null;
+                    if (result.getListOfDisplayedRecs().size() > 0) {
+                        target = result.getListOfDisplayedRecs().get(0);
+                    }
+                    result.setItemID(target);
+                    result.setItemSourceID(source);
+                }
             }
         } catch (Throwable t) {
             logger.info("EXCEPTION\t" + t.getMessage() + "\t" + _jsonMessageBody);
