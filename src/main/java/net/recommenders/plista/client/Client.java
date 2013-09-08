@@ -25,6 +25,8 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Properties;
 
 import net.recommenders.plista.recommender.Recommender;
@@ -135,6 +137,12 @@ public class Client {
                     // get all the previous logs
                     final FileFilter fileFilter = new WildcardFileFilter(logFile + ".*");
                     final File[] files = new File(".").listFiles(fileFilter);
+                    // Sort these files: the newer the file, the later it should be processed
+                    Arrays.sort(files, new Comparator<File>() {
+                        public int compare(File t, File t1) {
+                            return (int) (t.lastModified() - t1.lastModified());
+                        }
+                    });
                     for (File file : files) {
                         System.out.println("Processing " + file);
                         processFile(file, handler, rec, messageIdentifier);
