@@ -18,6 +18,8 @@
  */
 package net.recommenders.plista.client;
 
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA. User: alan Date: 2013-08-28 Time: 14:59 To change
  * this template use File | Settings | File Templates.
@@ -109,6 +111,8 @@ public interface Message {
      * @return the limit
      */
     public Integer getNumberOfRequestedResults();
+    
+    public List<Long> getRecommendedResults();
 
     /**
      * Check whether recommend or not
@@ -124,7 +128,7 @@ public interface Message {
      * @return the parsed values encapsulated in a map; null if an error has
      * been detected.
      */
-    public Message parseItemUpdate(String _jsonMessageBody);
+    public Message parseItemUpdate(final String _jsonMessageBody, boolean doLogging);
 
     /**
      * Parse the json Messages.
@@ -133,7 +137,7 @@ public interface Message {
      * @return the parsed values encapsulated in a map; null if an error has
      * been detected.
      */
-    public Message parseRecommendationRequest(String _jsonMessageBody);
+    public Message parseRecommendationRequest(final String _jsonMessageBody, boolean doLogging);
 
     /**
      * parse the event notification.
@@ -141,5 +145,5 @@ public interface Message {
      * @param _jsonMessageBody
      * @return
      */
-    public Message parseEventNotification(final String _jsonMessageBody);
+    public Message parseEventNotification(final String _jsonMessageBody, boolean doLogging);
 }

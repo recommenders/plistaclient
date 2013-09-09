@@ -116,7 +116,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
         // TODO handle "item_create"
 
         if (ChallengeMessage.MSG_UPDATE.equalsIgnoreCase(messageType)) {
-            final Message recommenderItem = MESSAGE_PARSER.parseItemUpdate(messageBody);
+            final Message recommenderItem = MESSAGE_PARSER.parseItemUpdate(messageBody, doLogging);
             if (recommenderItem.getItemID() != null) {
                 rec.update(recommenderItem);
                 return ";item_update successfull";
@@ -127,7 +127,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
             // we handle a recommendation request
             try {
                 // parse the new recommender request
-                Message input = MESSAGE_PARSER.parseRecommendationRequest(messageBody);
+                Message input = MESSAGE_PARSER.parseRecommendationRequest(messageBody, doLogging);
                 if (input.getItemID() != null) {
                     rec.update(input);
                     // gather the items to be recommended
@@ -146,7 +146,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
             }
         } else if (ChallengeMessage.MSG_EVENT_NOTIFICATION.equalsIgnoreCase(messageType)) {
             // parse the type of the event
-            final Message item = MESSAGE_PARSER.parseEventNotification(messageBody);
+            final Message item = MESSAGE_PARSER.parseEventNotification(messageBody, doLogging);
             final String eventNotificationType = item.getNotificationType();
             // impression refers to articles read by the user
             if (ChallengeMessage.MSG_NOTIFICATION_IMPRESSION.equalsIgnoreCase(eventNotificationType)) {

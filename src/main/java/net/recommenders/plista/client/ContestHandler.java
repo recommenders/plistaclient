@@ -116,7 +116,7 @@ public class ContestHandler extends AbstractHandler implements Handler {
     public String handleMessage(final String messageType, final String messageBody, final Recommender rec, final boolean doLogging) {
         String response = null;
         // parse the type of the event
-        final Message item = MESSAGE_PARSER.parseEventNotification(messageBody);
+        final Message item = MESSAGE_PARSER.parseEventNotification(messageBody, doLogging);
 
         // impression refers to articles read by the user
         if (messageType.equals(ContestMessage.MSG_IMPRESSION)) {

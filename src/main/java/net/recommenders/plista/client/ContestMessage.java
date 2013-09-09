@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.json.JSONException;
 
@@ -220,19 +221,24 @@ public class ContestMessage implements Message {
     }
 
     @Override
-    public Message parseItemUpdate(String _jsonMessageBody) {
+    public List<Long> getRecommendedResults() {
+        return null;
+    }
+
+    @Override
+    public Message parseItemUpdate(final String _jsonMessageBody, boolean doLogging) {
         // not available in contest
         return null;
     }
 
     @Override
-    public Message parseRecommendationRequest(String _jsonMessageBody) {
+    public Message parseRecommendationRequest(final String _jsonMessageBody, boolean doLogging) {
         // not available in contest
         return null;
     }
 
     @Override
-    public Message parseEventNotification(String _jsonMessageBody) {
+    public Message parseEventNotification(final String _jsonMessageBody, boolean doLogging) {
         try {
             JSONObject jObj = getObject(_jsonMessageBody);
             ContestMessage message = new ContestMessage();
@@ -272,10 +278,11 @@ public class ContestMessage implements Message {
                 Long category = getContextCategoryIdFromFeedback(jObj);
                 message.setItemCategory(category);
             }
-
             return message;
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            if (doLogging) {
+                logger.error(e.getMessage());
+            }
         }
 
         return null;
