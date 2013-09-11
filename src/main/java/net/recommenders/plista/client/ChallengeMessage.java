@@ -23,7 +23,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,6 +77,7 @@ public class ChallengeMessage implements Message {
     public static final Integer DO_RECOMMEND_ID = 20;
     public static final Integer ITEM_CONTENT_ID = 21;
     public static final Integer SOURCE_ITEM_ID = 22;
+    public static final Integer CONTEST_TEAM_ID = 30;
     // /////////////////////////////////////////////////////////////////////////////////////////
     /**
      * a hashMap storing the impression properties
@@ -381,7 +381,16 @@ public class ChallengeMessage implements Message {
         return getListOfDisplayedRecs();
     }
 
-    // /////////////////////////////////////////////////////////////////////////////////////////
+    public Long getContestTeamID() {
+        return (Long) valuesByID.get(CONTEST_TEAM_ID);
+    }
+
+    public void setContestTeamID(final Long _teamID) {
+        valuesByID.put(CONTEST_TEAM_ID, _teamID);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
     /**
      * Parse the ORP json Messages.
      *
@@ -550,6 +559,15 @@ public class ChallengeMessage implements Message {
                             }
                         }
                         result.setUserID(userID);
+                        Long teamID = null;
+                        try {
+                            teamID = Long.valueOf(jsonObjectContextSimple.get("41").toString());
+                        } catch (Exception e) {
+                            if (doLogging) {
+                                logger.info("ERROR\tno contestTeamID found in rec req\t" + jsonObjectContextSimple);
+                            }
+                        }
+                        result.setContestTeamID(teamID);
                     }
                     Long category = null;
                     JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");
@@ -674,6 +692,15 @@ public class ChallengeMessage implements Message {
                             }
                         }
                         result.setUserID(userID);
+                        Long teamID = null;
+                        try {
+                            teamID = Long.valueOf(jsonObjectContextSimple.get("41").toString());
+                        } catch (Exception e) {
+                            if (doLogging) {
+                                logger.info("ERROR\tmissing contestTeamID in event not\t" + jsonObjectContextSimple);
+                            }
+                        }
+                        result.setContestTeamID(teamID);
                     }
                     Long category = null;
                     JSONObject jsonObjectContextLists = (JSONObject) jsonObjectContext.get("lists");

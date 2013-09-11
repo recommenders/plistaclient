@@ -48,8 +48,9 @@ public class ContestMessage implements Message {
     public static final Integer ITEM_TITLE_ID = 12;
     public static final Integer ITEM_URL_ID = 14;
     public static final Integer ITEM_CREATED_ID = 15;
-    public static final Integer ITEM_CATEGORY_ID = 15;
+    public static final Integer ITEM_CATEGORY_ID = 18;
     public static final Integer SOURCE_ID = 20;
+    public static final Integer CONTEST_TEAM_ID = 30;
     //
     private final Map<Integer, Object> valuesByID = new HashMap<Integer, Object>();
 
@@ -225,6 +226,14 @@ public class ContestMessage implements Message {
         return null;
     }
 
+    public Long getContestTeamID() {
+        return (Long) valuesByID.get(CONTEST_TEAM_ID);
+    }
+
+    public void setContestTeamID(final Long _teamID) {
+        valuesByID.put(CONTEST_TEAM_ID, _teamID);
+    }
+
     @Override
     public Message parseItemUpdate(final String _jsonMessageBody, boolean doLogging) {
         // not available in contest
@@ -266,6 +275,8 @@ public class ContestMessage implements Message {
                 message.setNumberOfRequestedResults(limit);
                 Boolean recommend = getConfigRecommendFromImpression(jObj);
                 message.setDoRecommend(recommend);
+                Long teamID = getConfigTeamIdFromImpression(jObj);
+                message.setContestTeamID(teamID);
             } else if (isFeedback(jObj)) {
                 Long userID = getClientIdFromFeedback(jObj);
                 message.setUserID(userID);
@@ -277,6 +288,8 @@ public class ContestMessage implements Message {
                 message.setItemSourceID(sourceID);
                 Long category = getContextCategoryIdFromFeedback(jObj);
                 message.setItemCategory(category);
+                Long teamID = getConfigTeamIdFromFeedback(jObj);
+                message.setContestTeamID(teamID);
             }
             return message;
         } catch (Exception e) {
@@ -316,9 +329,9 @@ public class ContestMessage implements Message {
         }
     }
 
-    public static Integer getConfigTeamId(JSONObject jObj) {
+    public static Long getConfigTeamId(JSONObject jObj) {
         try {
-            return jObj.getJSONObject("config").getJSONObject("team").getInt("id");
+            return jObj.getJSONObject("config").getJSONObject("team").getLong("id");
         } catch (Exception e) {
             logger.debug(e.getMessage());
             return null;
@@ -438,7 +451,7 @@ public class ContestMessage implements Message {
         return getContextCategoryId(jObj);
     }
 
-    public static Integer getConfigTeamIdFromImpression(JSONObject jObj) {
+    public static Long getConfigTeamIdFromImpression(JSONObject jObj) {
         return getConfigTeamId(jObj);
     }
 
@@ -500,7 +513,7 @@ public class ContestMessage implements Message {
         return getContextCategoryId(jObj);
     }
 
-    public static Integer getConfigTeamIdFromFeedback(JSONObject jObj) {
+    public static Long getConfigTeamIdFromFeedback(JSONObject jObj) {
         return getConfigTeamId(jObj);
     }
 

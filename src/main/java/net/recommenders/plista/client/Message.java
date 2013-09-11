@@ -120,6 +120,8 @@ public interface Message {
      * @return recommendation or not
      */
     public Boolean doRecommend();
+    
+    public Long getContestTeamID();
 
     /**
      * Parse the json Messages.
