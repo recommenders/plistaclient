@@ -580,9 +580,9 @@ public class ChallengeMessage implements Message {
                     }
                 }
                 result.setTimeStamp(timestamp);
-                Integer limit = 0;
+                Long limit = 0L;
                 try {
-                    limit = (Integer) jsonObj.get("limit");
+                    limit = (Long) jsonObj.get("limit");
                 } catch (Exception e) {
                     if (doLogging) {
                         logger.info("ERROR\tno limit found in rec req\t" + _jsonMessageBody);
