@@ -251,8 +251,6 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
      * @return json
      */
     public static final String getRecommendationResultJSON(String _itemsIDs) {
-
-        // TODO log invalid results
         if (_itemsIDs == null || _itemsIDs.length() == 0) {
             _itemsIDs = "[]";
         } else if (!_itemsIDs.trim().startsWith("[")) {

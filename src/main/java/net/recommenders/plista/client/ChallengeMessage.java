@@ -64,20 +64,23 @@ public class ChallengeMessage implements Message {
     public static final Integer DOMAIN_ID = 3;
     public static final Integer TIMESTAMP_ID = 4;
     public static final Integer NUMBER_OF_REQUESTED_RESULTS_ID = 8;
-    public static final Integer ITEM_RECOMMENDABLE_ID = 9;
-    public static final Integer ITEM_TEXT_ID = 10;
-    public static final Integer NUMBER_OF_ITEM_UPDATES_ID = 11;
-    public static final Integer NOTIFICATION_TYPE_ID = 12;
-    public static final Integer NUMBER_DISPLAYED_AS_REC_ID = 13;
-    public static final Integer LIST_OF_DISPLAYED_RECS_ID = 14;
-    public static final Integer ITEM_TITLE_ID = 15;
-    public static final Integer ITEM_CREATED_ID = 16;
-    public static final Integer ITEM_URL_ID = 17;
-    public static final Integer ITEM_CATEGORY_ID = 18;
-    public static final Integer DO_RECOMMEND_ID = 20;
-    public static final Integer ITEM_CONTENT_ID = 21;
-    public static final Integer SOURCE_ITEM_ID = 22;
-    public static final Integer CONTEST_TEAM_ID = 30;
+    public static final Integer NOTIFICATION_TYPE_ID = 9;
+    //
+    public static final Integer ITEM_RECOMMENDABLE_ID = 10;
+    public static final Integer ITEM_TEXT_ID = 11;
+    public static final Integer NUMBER_OF_ITEM_UPDATES_ID = 12;
+    public static final Integer ITEM_TITLE_ID = 13;
+    public static final Integer ITEM_CREATED_ID = 14;
+    public static final Integer ITEM_UPDATED_ID = 15;
+    public static final Integer ITEM_URL_ID = 16;
+    public static final Integer ITEM_CATEGORY_ID = 17;
+    public static final Integer ITEM_CONTENT_ID = 18;
+    public static final Integer SOURCE_ITEM_ID = 19;
+    //
+    public static final Integer NUMBER_DISPLAYED_AS_REC_ID = 30;
+    public static final Integer LIST_OF_DISPLAYED_RECS_ID = 31;
+    public static final Integer DO_RECOMMEND_ID = 32;
+    public static final Integer CONTEST_TEAM_ID = 33;
     // /////////////////////////////////////////////////////////////////////////////////////////
     /**
      * a hashMap storing the impression properties
@@ -250,6 +253,14 @@ public class ChallengeMessage implements Message {
         valuesByID.put(ITEM_CREATED_ID, _itemCreated);
     }
 
+    public Long getItemUpdated() {
+        return (Long) valuesByID.get(ITEM_UPDATED_ID);
+    }
+
+    public void setItemUpdated(final Long _itemUpdated) {
+        valuesByID.put(ITEM_UPDATED_ID, _itemUpdated);
+    }
+
     @Override
     public Boolean doRecommend() {
         return (Boolean) this.valuesByID.get(DO_RECOMMEND_ID);
@@ -390,7 +401,6 @@ public class ChallengeMessage implements Message {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-
     /**
      * Parse the ORP json Messages.
      *
@@ -493,6 +503,28 @@ public class ChallengeMessage implements Message {
                     }
                 }
                 result.setItemCreated(created);
+                Long updated = null;
+                try {
+                    String updatedAt = jsonObj.get("updated_at") + "";
+                    SimpleDateFormat sdf;
+                    sdf = ChallengeMessage.sdf.get();
+                    updated = sdf.parse(updatedAt).getTime();
+                } catch (Exception e) {
+                    if (doLogging) {
+                        logger.info("ERROR\tno updated_at found in update\t" + jsonObj);
+                    }
+                }
+                result.setItemUpdated(updated);
+                // update the correct timestamp (if not present, by default updated or created time)
+                if (timestamp == null) {
+                    if (updated == null) {
+                        if (created != null) {
+                            result.setTimeStamp(created);
+                        }
+                    } else {
+                        result.setTimeStamp(updated);
+                    }
+                }
             }
         } catch (Exception e) {
             if (doLogging) {
