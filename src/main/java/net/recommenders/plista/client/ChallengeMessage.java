@@ -781,6 +781,7 @@ public class ChallengeMessage implements Message {
                     }
                 }
                 result.setListOfDisplayedRecs(listOfDisplayedRecs);
+                result.setNumberOfRequestedResults(listOfDisplayedRecs.size());
                 if (MSG_NOTIFICATION_CLICK.equals(notificationType)) {
                     Long source = result.getItemID();
                     Long target = null;
