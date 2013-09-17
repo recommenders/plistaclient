@@ -133,15 +133,17 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
                     // gather the items to be recommended
                     List<Long> resultList = rec.recommend(input, input.getNumberOfRequestedResults());
                     String s = "[]";
-                    if (resultList != null) {
-                        s = resultList.toString();
+                    if (resultList != null && input.getNumberOfRequestedResults() != null) {
+                        // double check for the length of the recommendations
+                        s = resultList.subList(0, Math.min(input.getNumberOfRequestedResults(), resultList.size())).toString();
                     }
                     return getRecommendationResultJSON(s);
                 }
                 return "handle recommendation noitemID unsuccessful";
             } catch (Throwable t) {
                 if (doLogging) {
-                    logger.error("EXCEPTION\t" + t.getMessage());
+                    t.printStackTrace();
+                    logger.error("EXCEPTION\t" + t.getMessage() + "_" + t);
                 }
             }
         } else if (ChallengeMessage.MSG_EVENT_NOTIFICATION.equalsIgnoreCase(messageType)) {
