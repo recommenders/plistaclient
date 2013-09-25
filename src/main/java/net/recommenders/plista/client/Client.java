@@ -28,14 +28,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Properties;
+import net.recommenders.plista.log.DataLogger;
 
 import net.recommenders.plista.recommender.Recommender;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The main class Functions: - initializing and starting the http server -
@@ -50,7 +49,7 @@ public class Client {
     /**
      * the default logger
      */
-    private final static Logger logger = LoggerFactory.getLogger(Client.class);
+    private final static DataLogger logger = DataLogger.getLogger(Client.class);
 
     /**
      * the constructor.

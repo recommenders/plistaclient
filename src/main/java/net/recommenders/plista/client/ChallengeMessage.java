@@ -28,8 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.recommenders.plista.log.DataLogger;
 
 /**
  * An impression object. Should contain userID, itemID, domainID, and timeStamp.
@@ -40,7 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ChallengeMessage implements Message {
 
-    private final static Logger logger = LoggerFactory.getLogger(ChallengeMessage.class);
+    private final static DataLogger logger = DataLogger.getLogger(ChallengeMessage.class);
     public final static String MSG_UPDATE = "item_update";
     public final static String MSG_REC_REQUEST = "recommendation_request";
     public final static String MSG_EVENT_NOTIFICATION = "event_notification";

@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.apache.log4j.Logger;
+import net.recommenders.plista.log.DataLogger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -46,7 +46,7 @@ import org.json.simple.JSONValue;
  */
 public class ContestHandler extends AbstractHandler implements Handler {
 
-    private final static Logger logger = Logger.getLogger(ContestHandler.class);
+    private final static DataLogger logger = DataLogger.getLogger(ContestHandler.class);
     private Recommender recommender;
     private static final Message MESSAGE_PARSER = new ContestMessage();
     private final int teamID;
@@ -155,11 +155,11 @@ public class ContestHandler extends AbstractHandler implements Handler {
     private String handleMessage(final String messageType, final String _jsonMessageBody) {
 
         // write all data from the server to a file
-        logger.fatal("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
+        logger.data("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
 
         String response = handleMessage(messageType, _jsonMessageBody, recommender, true);
 
-        logger.fatal("RESPONSE\t" + response);
+        logger.data("RESPONSE\t" + response);
         return response;
     }
 

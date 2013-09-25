@@ -19,12 +19,12 @@
  */
 package net.recommenders.plista.client;
 
-import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.recommenders.plista.log.DataLogger;
 import org.json.JSONException;
 
 /**
@@ -33,7 +33,7 @@ import org.json.JSONException;
  */
 public class ContestMessage implements Message {
 
-    private static final Logger logger = Logger.getLogger(ContestMessage.class);
+    private static final DataLogger logger = DataLogger.getLogger(ContestMessage.class);
     public final static String MSG_IMPRESSION = "impression";
     public final static String MSG_FEEDBACK = "feedback";
     // access keys

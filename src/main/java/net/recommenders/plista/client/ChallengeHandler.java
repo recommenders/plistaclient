@@ -29,9 +29,9 @@ import java.util.concurrent.Executors;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import net.recommenders.plista.log.DataLogger;
 
 import net.recommenders.plista.recommender.Recommender;
-import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -48,7 +48,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
     /**
      * Define the default logger
      */
-    private final static Logger logger = Logger.getLogger(ChallengeHandler.class);
+    private final static DataLogger logger = DataLogger.getLogger(ChallengeHandler.class);
     /**
      * Define the default recommender, currently not used.
      */
@@ -214,11 +214,11 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
     private String handleMessage(final String messageType, final String _jsonMessageBody) {
 
         // write all data from the server to a file
-        logger.fatal("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
+        logger.data("MESSAGE\t" + messageType + "\t" + _jsonMessageBody);
 
         String response = handleMessage(messageType, _jsonMessageBody, recommender, true);
 
-        logger.fatal("RESPONSE\t" + response);
+        logger.data("RESPONSE\t" + response);
         return response;
     }
 
