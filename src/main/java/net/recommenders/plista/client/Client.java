@@ -50,6 +50,7 @@ public class Client {
      * the default logger
      */
     private final static DataLogger logger = DataLogger.getLogger(Client.class);
+    private static int lognum;
 
     /**
      * the constructor.
@@ -90,6 +91,7 @@ public class Client {
         Recommender recommender = null;
         recommenderClass = (recommenderClass != null ? recommenderClass : properties.getProperty("plista.recommender"));
         System.out.println(recommenderClass);
+        lognum = Integer.parseInt(properties.getProperty("plista.lognum"));
         try {
             final Class<?> transformClass = Class.forName(recommenderClass);
             recommender = (Recommender) transformClass.newInstance();
@@ -130,7 +132,7 @@ public class Client {
         public static void initRecommender(Handler handler, Recommender rec, Properties properties, String[] logFiles, String messageIdentifier) {
             rec.setProperties(properties);
             rec.init();
-
+            int logs = 0;
             try {
                 for (String logFile : logFiles) {
                     // get all the previous logs
@@ -143,7 +145,10 @@ public class Client {
                         }
                     });
                     for (File file : files) {
+                        if (logs > lognum)
+                            break;
                         System.out.println("Processing " + file);
+                        logs++;
                         processFile(file, handler, rec, messageIdentifier);
                     }
                     // get the last log
