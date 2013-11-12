@@ -100,11 +100,11 @@ public class Client {
             throw new IllegalArgumentException("No recommender specified or recommender not available.");
         }
         // configure log4j
-        if (args.length >= 4 && args[3] != null) {
+	/*if (args.length >= 4 && args[3] != null) {
             PropertyConfigurator.configure(args[0]);
         } else {
             PropertyConfigurator.configure("log4j.properties");
-        }
+        }*/
         // set up and start server
 
         AbstractHandler handler = null;
