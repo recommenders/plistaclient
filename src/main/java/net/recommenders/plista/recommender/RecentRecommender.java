@@ -69,7 +69,7 @@ public class RecentRecommender implements Recommender {
             return new ArrayList<Long>(0);
         }
         int limit = numberOfRequestedResults.intValue();
-        if (limit < 0 || limit > 10) {
+        if (limit < 0 || limit > 100) {
             return new ArrayList<Long>(0);
         }
 
