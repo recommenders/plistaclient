@@ -140,7 +140,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
                     }
                     return getRecommendationResultJSON(s);
                 //}
-                return "handle recommendation noitemID unsuccessful";
+                //return "handle recommendation noitemID unsuccessful";
             } catch (Throwable t) {
                 if (doLogging) {
                     t.printStackTrace();
