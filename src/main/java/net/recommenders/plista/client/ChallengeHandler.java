@@ -128,7 +128,8 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
             try {
                 // parse the new recommender request
                 Message input = MESSAGE_PARSER.parseRecommendationRequest(messageBody, doLogging);
-                if (input.getItemID() != null) {
+		// we do not have to impose that the item id is present in the request (recommenders have to deal with that situation)
+                // if (input.getItemID() != null) {
                     rec.update(input);
                     // gather the items to be recommended
                     List<Long> resultList = rec.recommend(input, input.getNumberOfRequestedResults());
@@ -138,7 +139,7 @@ public class ChallengeHandler extends AbstractHandler implements Handler {
                         s = resultList.subList(0, Math.min(input.getNumberOfRequestedResults(), resultList.size())).toString();
                     }
                     return getRecommendationResultJSON(s);
-                }
+                //}
                 return "handle recommendation noitemID unsuccessful";
             } catch (Throwable t) {
                 if (doLogging) {
